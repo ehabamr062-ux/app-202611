@@ -2420,9 +2420,19 @@
                 word-wrap: break-word;
             }
         }
+
+        #qr-reader__status_span,
+        #qr-reader__dashboard_section_csr span {
+            display: none !important;
+        }
+
+        #qr-reader__header_message {
+            display: none !important;
+        }
     </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <body class="theme-galaxy dark">
 
@@ -2432,22 +2442,10 @@
                 <header>
                     <h1 class="title-container" id="appTitle">تطبيق المحاسبة اليومي</h1>
                     <div class="header-controls">
-                        <!-- Egg Balance Section (Electric Style) -->
-                        <div class="electric-border-box" onclick="openEggBalanceModal()" title="اضغط لتفاصيل رصيد البيض"
-                            style="background: linear-gradient(var(--angle), #22c55e, #10b981, #22c55e);">
-                            <div class="electric-content"
-                                style="background: linear-gradient(145deg, #14532d, #15803d);">
-                                <span id="eggBalanceLabel"
-                                    style="font-size: 11px; color: #bbf7d0; margin-bottom: 2px;">🥚
-                                    رصيد البيض</span>
-                                <div id="eggBalanceDisplay"
-                                    style="font-weight: bold; font-size: 14px; color: #fff; white-space: nowrap;">
-                                    -- طبق | -- قطعة
-                                </div>
-                                <input type="hidden" id="eggPlates" value="0">
-                                <input type="hidden" id="eggPieces" value="0">
-                            </div>
-                        </div>
+                        <!-- Dynamic Inventories Button -->
+                        <button class="btn"
+                            style="background:var(--gold4);color:var(--gold1);padding:8px 12px;font-size:16px;border:1px solid var(--gold2); display:flex; align-items:center; gap:5px; flex-shrink:0;"
+                            onclick="openInventoriesSideMenu()" title="المخزون والأرصدة">📦 الأرصدة</button>
 
                         <!-- System Tools (Unified Left Group) -->
                         <div class="system-tools"
@@ -2460,8 +2458,12 @@
                                 title="النسخ الاحتياطي">💾</button>
                             <button class="btn" id="screenshotBtn" style="font-size: 16px; padding: 8px 12px;"
                                 title="لقطة شاشة">📸</button>
-                            <button class="btn" id="qrcodeBtn" style="font-size: 16px; padding: 8px 12px;"
-                                title="توليد QR Code للتقرير" onclick="generateQRCodeModal()">📱</button>
+                            <button class="btn" id="qrcodeBtn"
+                                style="font-size: 16px; padding: 8px 12px; color: #0ea5e9;"
+                                title="توليد وتصدير QR للتقرير" onclick="generateQRCodeModal()">📱 تصدير</button>
+                            <button class="btn" id="qrScannerBtn"
+                                style="font-size: 16px; padding: 8px 12px; color: #10b981;" title="قراءة تقرير بـ QR"
+                                onclick="openQRScannerModal()">🔍 قراءة</button>
                             <button class="btn" id="printBtn" style="font-size: 16px; padding: 8px 12px;"
                                 title="طباعة تقرير اليوم" onclick="printDailyReport()">🖨️</button>
                             <button class="btn" id="layoutToggleBtn" style="font-size: 16px; padding: 8px 12px;"
@@ -2767,7 +2769,7 @@
                             </div>
                             <div style="overflow-x:auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
                                 <table id="aggTable" style="width: 100%;">
-                                    <thead style="background: linear-gradient(135deg, #a16207, #854d0e);">
+                                    <thead>
                                         <tr>
                                             <th
                                                 style="padding: 12px; text-align: center; font-weight: 600; color: #ffffff;">
@@ -3605,7 +3607,7 @@
             if (/mobile|android|iphone|ipad|phone/i.test(ua)) return 'mobile';
 
             // 2. Check Screen Properties (For 'Desktop Mode' on mobile)
-            // Mobile screens are physically narrow (usually < 900px logical pixels)
+            // Mobile screens are physically narrow (usually <900px logical pixels)
             if (window.screen && (window.screen.width < 900 || window.screen.height < 600)) {
                 return 'mobile';
             }
@@ -3967,7 +3969,7 @@
             $('headerOperationsCount').textContent = records.length;
 
             updateUnpaidInvoicesTotal();
-            updateEggBalanceDisplay(); // Force update egg balance on every render
+            renderInventoriesHeader(); // Force update egg balance on every render
             const diffValue = salesTotal - totalBottom;
             const diffStat = $('diffStat');
             diffStat.classList.remove('positive', 'negative');
@@ -3989,14 +3991,14 @@
             overlay.className = 'modal-overlay';
 
             overlay.innerHTML = `
-                        < div class="modal-box" style = "max-width: 600px;" >
+                        <div class="modal-box" style = "max-width: 600px;" >
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <h3 style="margin:0">تفاصيل فئة: ${escapeHtml(cat)}</h3>
             <button class="btn ghost" style="padding:8px;" onclick="document.body.removeChild(this.closest('.modal-overlay'))"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXgiPjxsaW5lIHgxPSIxOCIgeDI9IjYiIHkxPSI2IiB5Mj0iMTgiLz48bGluZSB4MT0iNiIgeDI9IjE4IiB5MT0iNiIgeTI9IjE4Ii8+PC9zdmc+" class="icon" style="margin:0;"></button>
         </div>
         <div id="category-details-summary" style="display:flex; gap:16px; background: var(--glass); padding: 12px; border-radius: 10px; margin-bottom: 16px;"></div>
         <div id="category-details-list" style="max-height: 40vh; overflow-y: auto; padding-right: 8px;"></div>
-    </div >
+    </div>
                         `;
             document.body.appendChild(overlay);
             refreshCategoryDetails(cat);
@@ -4030,7 +4032,7 @@
                 opElement.style.padding = '12px';
                 opElement.style.marginBottom = '8px';
                 opElement.innerHTML = `
-                        < div class="view-mode" >
+                        <div class="view-mode" >
                 <div style="display:flex; align-items:center; gap:12px;">
                     <div style="flex-grow:1;">
                         <p style="margin:0; font-weight:bold; font-size:18px;">${formatNum(amount)}</p>
@@ -4108,7 +4110,7 @@
             });
 
             summaryContainer.innerHTML = `
-                        < div style = "flex:1; text-align:center;" ><h4>إجمالي المبلغ</h4><p style="font-size:18px; font-weight:bold; color:var(--gold2); margin:0;">${formatNum(totalAmount)}</p></div >
+                        <div style = "flex:1; text-align:center;" ><h4>إجمالي المبلغ</h4><p style="font-size:18px; font-weight:bold; color:var(--gold2); margin:0;">${formatNum(totalAmount)}</p></div>
                             <div style="flex:1; text-align:center;"><h4>عدد العمليات</h4><p style="font-size:18px; font-weight:bold; color:var(--gold2); margin:0;">${ops.length}</p></div>
                     `;
         }
@@ -4356,7 +4358,7 @@
             // --------------------------------------------------------------------------
 
             // Also update egg balance display for this date
-            updateEggBalanceDisplay();
+            renderInventoriesHeader();
 
             render();
         }
@@ -4504,6 +4506,19 @@
                 </tr>
             `}).join('');
 
+            const detailedRowsHtml = records.map((r, index) => {
+                const timeStr = r.timestamp ? new Date(r.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '-';
+                return `
+                <tr style="background-color: ${index % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom: 1px solid #e2e8f0; font-size: 14px;">
+                    <td style="padding: 8px; text-align: right; color: #64748b;">${timeStr}</td>
+                    <td style="padding: 8px; text-align: right; font-weight: bold; color: #1e293b;">${r.category}</td>
+                    <td style="padding: 8px; text-align: center; color: #059669;">${r.top ? formatNum(r.top) : '-'}</td>
+                    <td style="padding: 8px; text-align: center; color: #dc2626;">${r.bottom ? formatNum(r.bottom) : '-'}</td>
+                    <td style="padding: 8px; text-align: right; color: #475569;">${r.notes || '-'}</td>
+                </tr>
+                `;
+            }).join('');
+
             const printContent = `
                 <div id="printArea" style="font-family: 'El Messiri', sans-serif; direction: rtl; color: #1e293b; padding: 20px; max-width: 800px; margin: 0 auto; background: white;">
                     <!-- Top Accent Bar -->
@@ -4546,18 +4561,36 @@
                             </tbody>
                             <tfoot>
                                 <tr style="background-color: #f8fafc; font-weight: bold;">
-                                    <td colspan="2" style="padding: 15px; text-align: left; font-size: 16px; border-top: 2px solid #e2e8f0;">إجمالي الحسابات اليومية:</td>
+                                    <td style="padding: 15px; text-align: left; font-size: 16px; border-top: 2px solid #e2e8f0;">إجمالي الحسابات:</td>
                                     <td style="padding: 15px; text-align: center; color: #059669; font-size: 16px; border-top: 2px solid #e2e8f0;">${formatNum(salesTotal)}</td>
                                     <td style="padding: 15px; text-align: center; color: #dc2626; font-size: 16px; border-top: 2px solid #e2e8f0;">${formatNum(expensesTotal)}</td>
                                     <td style="border-top: 2px solid #e2e8f0;"></td>
                                 </tr>
                                 <tr style="background: linear-gradient(90deg, #f0f9ff, #e0f2fe); font-weight: bold; font-size: 18px;">
                                     <td colspan="2" style="padding: 20px 15px; text-align: left; color: #0369a1;">صافي الربح النهائي:</td>
-                                    <td colspan="3" style="padding: 20px 15px; text-align: center; color: #0369a1; font-size: 26px;">${formatNum(salesTotal - expensesTotal)} ج.م</td>
+                                    <td colspan="2" style="padding: 20px 15px; text-align: center; color: #0369a1; font-size: 26px;">${formatNum(salesTotal - expensesTotal)} ج.م</td>
                                 </tr>
                             </tfoot>
                         </table>
 
+                        <!-- Detailed Table Section -->
+                        ${records.length > 0 ? `
+                        <h4 style="margin: 40px 0 10px 0; color: #0f172a; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">تفاصيل العمليات (يومية السجل)</h4>
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                            <thead>
+                                <tr style="background-color: #f1f5f9; color: #0f172a; font-size: 14px;">
+                                    <th style="padding: 8px; text-align: right; width: 10%; border-bottom: 2px solid #cbd5e1;">الوقت</th>
+                                    <th style="padding: 8px; text-align: right; width: 25%; border-bottom: 2px solid #cbd5e1;">الفئة</th>
+                                    <th style="padding: 8px; text-align: center; width: 15%; border-bottom: 2px solid #cbd5e1;">وارد (فوق)</th>
+                                    <th style="padding: 8px; text-align: center; width: 15%; border-bottom: 2px solid #cbd5e1;">منصرف (تحت)</th>
+                                    <th style="padding: 8px; text-align: right; width: 35%; border-bottom: 2px solid #cbd5e1;">ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${detailedRowsHtml}
+                            </tbody>
+                        </table>
+                        ` : ''}
                         <!-- Footer Section -->
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #e2e8f0;">
                             <div style="flex: 2; padding-left: 20px; text-align: right;">
@@ -4596,14 +4629,20 @@
 
             // Generate QR Code
             // Generate detailed QR Data
-            let transactionsData = records.map(r =>
-                `${r.timestamp}|${r.category}|${r.top || 0}|${r.bottom || 0}|${r.notes || ''}`
-            ).join(';');
+            // Optimize data by using shorter keys or array format to reduce QR density
+            const compressedRecords = records.map(r => ({
+                c: r.category,
+                t: r.top || 0,
+                b: r.bottom || 0,
+                n: r.notes || '',
+                s: r.timestamp || ''
+            }));
 
-            // Limit data length to avoid QR code complexity issues (max ~2000 chars roughly for efficient scanning)
-            if (transactionsData.length > 1500) transactionsData = transactionsData.substring(0, 1500) + '...';
+            const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(compressedRecords))));
+            const appUrl = window.location.origin + window.location.pathname;
+            const fullLink = `${appUrl}#view?report=${reportNum}&date=${date}&data=${encodedData}`;
 
-            const qrData = `REP:${reportNum}\nDT:${date}\nUSR:${userName}\n--TRANS--\n${transactionsData}\n--TOTAL--\nSales:${salesTotal}\nExp:${expensesTotal}\nNet:${salesTotal - expensesTotal}`;
+            const qrData = fullLink;
             // Generate QR Code with better reliability
             setTimeout(() => {
                 const qrElement = document.getElementById("qrcode");
@@ -4612,11 +4651,11 @@
                     try {
                         new QRCode(qrElement, {
                             text: qrData,
-                            width: 150,
-                            height: 150,
+                            width: 200,
+                            height: 200,
                             colorDark: "#000000",
                             colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.L // Use Level L to accommodate more data
+                            correctLevel: QRCode.CorrectLevel.L // Low error correction = more data capacity
                         });
                         console.log("QR Code generated for print.");
                     } catch (err) {
@@ -4654,12 +4693,21 @@
                 else expensesTotal += (r.bottom || 0);
             });
 
-            const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(records))));
+            // Optimize data by using shorter keys or array format to reduce QR density
+            const compressedRecords = records.map(r => ({
+                c: r.category,
+                t: r.top || 0,
+                b: r.bottom || 0,
+                n: r.notes || '',
+                s: r.timestamp || ''
+            }));
+
+            const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(compressedRecords))));
             const appUrl = window.location.origin + window.location.pathname;
             const fullLink = `${appUrl}#view?report=${reportNum}&date=${date}&data=${encodedData}`;
 
             // Make the QR Code embed the actual Link
-            const qrData = fullLink.length <= 2500 ? fullLink : fullLink.substring(0, 2500);
+            const qrData = fullLink; // Don't truncate if possible, we'll try to handle density via compression
 
             // Create modal
             const modal = document.createElement('div');
@@ -4720,11 +4768,11 @@
                     displayElement.innerHTML = '';
                     new QRCode(displayElement, {
                         text: qrData,
-                        width: 200,
-                        height: 200,
+                        width: 280, // Increased size
+                        height: 280,
                         colorDark: "#000000",
                         colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
+                        correctLevel: QRCode.CorrectLevel.L // Use Low correction to fit more data reliably
                     });
                 }
             }, 100);
@@ -4738,6 +4786,199 @@
         function closeQRCodeModal() {
             const modal = document.getElementById('qrcodeModal');
             if (modal) modal.remove();
+        }
+
+        /* ---------- QR Code Reader (Scanner) ---------- */
+        window.openQRScannerModal = function () {
+            const modal = document.createElement('div');
+            modal.id = 'qrScannerModal';
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center;
+                z-index: 999999; backdrop-filter: blur(8px); direction: rtl;
+            `;
+
+            modal.innerHTML = `
+                <div style="background: var(--neu-bg, #111); padding: 25px; border-radius: 20px; width: 90%; max-width: 450px;
+                            border: 2px solid var(--gold2); box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: var(--gold2); font-size: 20px;">🔍 قراءة البيانات من الباركود (QR)</h3>
+                        <button class="btn ghost" style="color:red;" onclick="closeQRReader()">❌</button>
+                    </div>
+                    
+                    <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; font-size: 13px; color: var(--success); margin-bottom: 15px; text-align: right;">
+                        💡 يرجى توجيه الكاميرا إلى الـ QR Code من الهاتف الآخر لاستيراد عملياته.
+                    </div>
+
+                    <div id="qr-reader" style="width: 100%; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);"></div>
+                    <div id="qr-reader-results" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; display: none; overflow-y: auto; max-height: 250px; text-align: right;">
+                    </div>
+                    <button class="btn green" id="applyScanBtn" style="display: none; margin-top: 15px; width: 100%;">📥 استيراد العمليات للتطبيق</button>
+                    <button class="btn" id="rescanBtn" style="display: none; margin-top: 10px; width: 100%;" onclick="startScanner()">🔄 فحص مرة أخرى</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            startScanner();
+        }
+
+        function startScanner() {
+            document.getElementById('qr-reader').style.display = 'block';
+            document.getElementById('qr-reader-results').style.display = 'none';
+            document.getElementById('applyScanBtn').style.display = 'none';
+            document.getElementById('rescanBtn').style.display = 'none';
+
+            if (window.html5QrcodeScanner) {
+                try { window.html5QrcodeScanner.clear(); } catch (e) { }
+            }
+
+            window.html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader", {
+                fps: 20,
+                qrbox: { width: 280, height: 280 },
+                rememberLastUsedCamera: true,
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true
+            }, false
+            );
+
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            try {
+                console.log("Scanner detected text:", decodedText);
+                let operations = null;
+                let reportInfo = { num: 'N/A', date: 'غير محدد' };
+
+                // 1. Check if it's the URL/Encoded format (New format)
+                if (decodedText.indexOf('data=') !== -1) {
+                    try {
+                        const parts = decodedText.split('data=');
+                        const encodedData = parts[1].split('&')[0].split('#')[0];
+                        const rawJson = decodeURIComponent(escape(atob(encodedData)));
+                        operations = JSON.parse(rawJson);
+
+                        const numMatch = decodedText.match(/report=([^&#\s]+)/);
+                        const dateMatch = decodedText.match(/date=([^&#\s]+)/);
+                        if (numMatch) reportInfo.num = numMatch[1];
+                        if (dateMatch) reportInfo.date = dateMatch[1];
+                    } catch (e) { console.error("URL Parse error", e); }
+                }
+
+                // 2. If not yet found, check if it's raw JSON
+                if (!operations && (decodedText.startsWith('[') || decodedText.startsWith('{'))) {
+                    try { operations = JSON.parse(decodedText); } catch (e) { }
+                }
+
+                // 3. Check for Old Text Format (REP:...)
+                if (!operations && decodedText.startsWith('REP:')) {
+                    const lines = decodedText.split('\n');
+                    const transIdx = lines.findIndex(l => l.includes('--TRANS--'));
+                    const totalIdx = lines.findIndex(l => l.includes('--TOTAL--'));
+                    if (transIdx !== -1 && totalIdx !== -1) {
+                        const transData = lines.slice(transIdx + 1, totalIdx);
+                        operations = transData.map(l => {
+                            const p = l.split('|');
+                            return {
+                                category: p[1] || 'غير معروف',
+                                top: parseFloat(p[2]) || 0,
+                                bottom: parseFloat(p[3]) || 0,
+                                notes: p[4] || '',
+                                timestamp: p[0] || new Date().toISOString()
+                            };
+                        });
+                        reportInfo.num = (lines[0].split(':')[1] || 'N/A').trim();
+                        reportInfo.date = (lines[1].split(':')[1] || '').trim();
+                    }
+                }
+
+                if (!operations || !Array.isArray(operations)) {
+                    // Not our format, ignore or log
+                    return;
+                }
+
+                // Map compressed to full if needed
+                if (operations.length > 0 && operations[0].c !== undefined) {
+                    operations = operations.map(o => ({
+                        id: 'imp_' + Math.random().toString(36).substr(2, 9),
+                        category: o.c,
+                        top: parseFloat(o.t) || 0,
+                        bottom: parseFloat(o.b) || 0,
+                        notes: o.n || '',
+                        timestamp: o.s || new Date().toISOString()
+                    }));
+                } else if (operations.length > 0 && !operations[0].id) {
+                    operations = operations.map(o => ({
+                        ...o,
+                        id: 'imp_' + Math.random().toString(36).substr(2, 9),
+                        timestamp: o.timestamp || new Date().toISOString()
+                    }));
+                }
+
+                // Stop scanning and show results
+                try {
+                    if (window.html5QrcodeScanner) window.html5QrcodeScanner.clear();
+                } catch (e) { }
+
+                const readerZone = document.getElementById('qr-reader');
+                if (readerZone) readerZone.style.display = 'none';
+
+                const resDiv = document.getElementById('qr-reader-results');
+                if (resDiv) {
+                    resDiv.style.display = 'block';
+                    resDiv.innerHTML = `
+                        <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:15px;">
+                            <h4 style="color:var(--gold2); margin:0 0 5px 0;">📑 تم العثور على تقرير</h4>
+                            <p style="color:var(--muted); font-size:12px; margin:0;">رقم: ${reportInfo.num} | بتاريخ: ${reportInfo.date}</p>
+                        </div>
+                        <p style="color:#fff; margin-bottom:12px;">يحتوي على <b style="color:var(--success); font-size:18px;">${operations.length}</b> عملية جاهزة للاستيراد.</p>
+                        <div style="max-height:150px; overflow-y:auto; padding-right:5px;">
+                            ${operations.slice(0, 5).map(o => `
+                                <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; margin-bottom:6px; border:1px solid rgba(255,255,255,0.05); font-size:12px; display:flex; justify-content:space-between;">
+                                    <span style="color:var(--gold1);">${o.category}</span>
+                                    <span>${o.top ? '+' + formatNum(o.top) : '-' + formatNum(o.bottom)}</span>
+                                </div>
+                            `).join('')}
+                            ${operations.length > 5 ? `<p style="text-align:center; font-size:11px; color:var(--muted); margin:5px 0 0 0;">...و ${operations.length - 5} عمليات أخرى</p>` : ''}
+                        </div>
+                    `;
+                }
+
+                const applyBtn = document.getElementById('applyScanBtn');
+                const rescanBtn = document.getElementById('rescanBtn');
+                if (applyBtn) applyBtn.style.display = 'block';
+                if (rescanBtn) rescanBtn.style.display = 'block';
+
+                if (applyBtn) {
+                    applyBtn.onclick = function () {
+                        if (confirm(`⚠️ استيراد العمليات؟\nسيتم إضافة ${operations.length} عملية إلى سجلاتك الحالية.`)) {
+                            records = [...records, ...operations];
+                            if (typeof saveToStorage === 'function') saveToStorage();
+                            if (typeof render === 'function') render();
+                            if (window.closeQRReader) window.closeQRReader();
+                            if (typeof showToast === 'function') showToast('✅ تم الاستيراد بنجاح!', 'success');
+                            if (typeof beep === 'function') beep(1500, 0.05, 0.05);
+                        }
+                    };
+                }
+
+            } catch (e) {
+                console.error("Scanner parsing error:", e);
+                // Continue scanning
+            }
+        }
+
+        function onScanFailure(error) {
+            // Ignore background errors
+        }
+
+        window.closeQRReader = function () {
+            if (window.html5QrcodeScanner) {
+                try { window.html5QrcodeScanner.clear(); } catch (e) { }
+            }
+            const m = document.getElementById('qrScannerModal');
+            if (m) m.remove();
         }
 
         function downloadQRCode() {
@@ -6331,104 +6572,11 @@
 
         /* ---------- Egg Balance Logic ---------- */
         /* ---------- Egg Balance Logic ---------- */
-        function openEggBalanceModal() {
-            const date = dateInput.value || (new Date()).toISOString().slice(0, 10);
-            const stockKey = `acc_egg_stock_${date}`;
-            const stockDataRaw = localStorage.getItem(stockKey);
+        // Original openEggBalanceModal removed.
 
-            let currentPlates = '0';
-            let currentPieces = '0';
+        // Original saveEggBalanceFromModal removed.
 
-            if (stockDataRaw) {
-                try {
-                    const stock = JSON.parse(stockDataRaw);
-                    currentPlates = stock.plates || '0';
-                    currentPieces = stock.pieces || '0';
-                } catch (e) { }
-            }
-
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            overlay.innerHTML = `
-                <div class="modal-box" style="max-width: 400px; border: 1px solid var(--gold2);">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <div style="font-size: 40px; margin-bottom: 10px;">🥚</div>
-                        <h3 style="color: var(--gold2);">تحديث رصيد البيض</h3>
-                        <p style="font-size: 12px; color: var(--muted);">تاريخ: ${date}</p>
-                    </div>
-                    
-                    <div style="display: grid; gap: 15px; margin-bottom: 20px;">
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; color: #ddd;">📦 عدد الأطباق (كرتونة)</label>
-                            <input type="number" id="inputEggPlates" value="${currentPlates}" class="custom-input" 
-                                style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; width: 100%; border: 1px solid #444; color: #fff; font-size: 18px; text-align: center;">
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 5px; color: #ddd;">🥚 عدد القطع (فرط)</label>
-                            <input type="number" id="inputEggPieces" value="${currentPieces}" class="custom-input" 
-                                style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; width: 100%; border: 1px solid #444; color: #fff; font-size: 18px; text-align: center;">
-                        </div>
-                    </div>
-
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn green glowing" onclick="saveEggBalanceFromModal()" style="flex: 1; padding: 12px;">حفظ الرصيد</button>
-                        <button class="btn red" onclick="this.closest('.modal-overlay').remove()" style="flex: 1; padding: 12px;">إلغاء</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
-            // Focus on plates input
-            setTimeout(() => document.getElementById('inputEggPlates').focus(), 100);
-            beep(600, 0.02, 0.03);
-        }
-
-        function saveEggBalanceFromModal() {
-            const plates = document.getElementById('inputEggPlates').value || '0';
-            const pieces = document.getElementById('inputEggPieces').value || '0';
-            const date = dateInput.value || (new Date()).toISOString().slice(0, 10);
-            const stockKey = `acc_egg_stock_${date}`;
-
-            const data = {
-                plates: plates,
-                pieces: pieces
-            };
-
-            localStorage.setItem(stockKey, JSON.stringify(data));
-
-            updateEggBalanceDisplay();
-
-            // Close modal
-            document.querySelector('.modal-overlay').remove();
-            showToast('✅ تم تحديث رصيد البيض لهذا اليوم', 'success');
-            beep(1000, 0.04, 0.06);
-        }
-
-        function updateEggBalanceDisplay() {
-            const date = dateInput.value || (new Date()).toISOString().slice(0, 10);
-            const stockKey = `acc_egg_stock_${date}`;
-            const stockDataRaw = localStorage.getItem(stockKey);
-
-            let plates = '0';
-            let pieces = '0';
-
-            if (stockDataRaw) {
-                try {
-                    const stock = JSON.parse(stockDataRaw);
-                    plates = stock.plates || '0';
-                    pieces = stock.pieces || '0';
-                } catch (e) { }
-            }
-
-            const displayEl = document.getElementById('eggBalanceDisplay');
-            if (displayEl) {
-                displayEl.textContent = `${plates} طبق | ${pieces} قطعة`;
-                displayEl.style.color = (plates == 0 && pieces == 0) ? '#aaa' : '#fff';
-            }
-
-            // Also update hidden inputs if needed elsewhere
-            if ($('eggPlates')) $('eggPlates').value = plates;
-            if ($('eggPieces')) $('eggPieces').value = pieces;
-        }
+        // Original updateEggBalanceDisplay removed.
 
 
 
@@ -6464,11 +6612,15 @@
 
             <div style="padding: 20px; flex: 1; overflow-y: auto;">
                 <div class="modal-tabs">
-                    <span class="tab-link" data-tab="user">
+                    <span class="tab-link" data-tab="user" onclick="if(typeof fetchConnectedDevices === 'function') fetchConnectedDevices()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                         بياناتك
                     </span>
-                    <span class="tab-link active" data-tab="general">
+                    <span class="tab-link" data-tab="inventories" onclick="renderInventoriesSettings()">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                        المخزون
+                    </span>
+                    <span class="tab-link active" data-tab="general" onclick="fetchConnectedDevices()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                         عام
                     </span>
@@ -6532,6 +6684,8 @@
                                 </button>
                             </div>
                         </div>
+
+
                         
                         <div style="margin-top: 25px; display: grid; gap: 15px;">
                              <div class="field">
@@ -6556,6 +6710,22 @@
                              </div>
                              <button class="btn green glowing" onclick="saveUserProfileFromSettings()" style="width:100%; margin-top:10px; padding:12px;">💾 حفظ التغييرات</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventories Management Tab -->
+            <div id="tab-inventories" class="tab-content">
+                <div class="settings-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div>
+                            <h4 style="margin:0; color:var(--gold2);">📦 إدارة المخزون / المنتجات</h4>
+                            <p style="font-size:12px; color:var(--muted); margin-top:5px;">يمكنك إضافة وإدارة أكثر من مخزون بأسماء ووحدات مختلفة.</p>
+                        </div>
+                        <button class="btn green small" onclick="addNewInventoryDef()">➕ مستودع جديد</button>
+                    </div>
+                    <div id="inventoriesListContainer" style="display:grid; gap:10px; max-height: 350px; overflow-y:auto; padding-right:5px;">
+                        <!-- Inventory definition rows -->
                     </div>
                 </div>
             </div>
@@ -6617,19 +6787,18 @@
                                 <div style="font-size:11px; color:var(--muted); margin-top: 4px;">فئات اليوم</div>
                             </div>
                         </div>
+
+                        <div id="connectedDevicesSection" style="margin-top: 15px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; display: none; align-items: center; gap: 12px; animation: slideUp 0.4s ease-out;">
+                            <div style="background: var(--success); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">📱</div>
+                            <div style="flex: 1;">
+                                <div style="color: var(--success); font-weight: bold; font-size: 14px;">مزامنة الأجهزة المشتركة</div>
+                                <div id="connectedDevicesCount" style="color: #fff; font-size: 12px; margin-top: 2px; opacity: 0.9;">جاري تحديث البيانات...</div>
+                            </div>
+                            <button onclick="fetchConnectedDevices()" class="btn ghost small" style="padding: 5px; min-width: auto; border: none; background: transparent;" title="تحديث">🔄</button>
+                        </div>
                     </div>
 
-                    <div class="settings-card">
-                        <h4>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--gold2);"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                            تخصيص العناوين
-                        </h4>
-                        <div class="field">
-                            <label style="color: var(--muted); margin-bottom: 5px; display: block;">تسمية رصيد البيض (أو أي مخزون آخر)</label>
-                            <input type="text" id="eggBalanceLabelInput" placeholder="مثال: رصيد البيض" class="custom-input">
-                        </div>
-                        <button class="btn green" onclick="saveEggBalanceLabel()" style="width:100%; margin-top:5px; padding: 10px; background: linear-gradient(135deg, #16a34a, #22c55e);">💾 حفظ التسمية</button>
-                    </div>
+
 
                     <div class="settings-card">
                         <h4>
@@ -6953,14 +7122,14 @@
    `;
             document.body.appendChild(overlay);
 
+            // Call device fetcher when settings open to show current stats
+            setTimeout(fetchConnectedDevices, 150);
+
             // Highlight active theme
             const currentTheme = localStorage.getItem('acc_app_theme') || 'gold';
             document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
             document.querySelector(`.swatch[data-theme="${currentTheme}"]`).classList.add('active');
 
-            // Load current egg balance label
-            const currentLabel = localStorage.getItem('acc_egg_balance_label') || 'رصيد البيض';
-            $('eggBalanceLabelInput').value = currentLabel;
 
             // Load saved font settings into modal
             const savedFam = localStorage.getItem('acc_font_family');
@@ -11201,7 +11370,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
             return user.pass === pass;
         }
 
-        window.togglePasswordVisibility = function(inputId, iconId) {
+        window.togglePasswordVisibility = function (inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
             if (!input) return;
@@ -11941,6 +12110,256 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
 
     </script>
 
+    <script>
+        /* ---------- Dynamic Inventories Logic ---------- */
+        let inventoriesConfig = JSON.parse(localStorage.getItem('acc_inventories_config')) || [
+            {
+                id: 'inv_egg', name: 'رصيد البيض', unit1: 'طبق', unit2: 'قطعة', icon: '🥚', color1: '#14532d', color2: '#15803d',
+                borderColor: '#22c55e'
+            }
+        ];
+
+        function saveInventoriesConfig() {
+            localStorage.setItem('acc_inventories_config', JSON.stringify(inventoriesConfig));
+            renderInventoriesHeader();
+            renderInventoriesSettings();
+            if (window.saveToCloud) window.saveToCloud(); // Sync
+        }
+
+        window.openInventoriesSideMenu = function () {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal-box" style="width: 320px; max-width: 85vw; height: 100vh; position: fixed; right: 0; top: 0; margin: 0; border-radius: 0; animation: modalSlideIn 0.3s ease-out; background: linear-gradient(135deg, #0f172a, #1e293b); border-left: 2px solid var(--gold2); padding: 20px; box-sizing: border-box; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                        <h3 style="margin: 0; color: var(--gold2); display: flex; align-items: center; gap: 8px; font-size: 20px;">📦 الأرصدة والمخزون</h3>
+                        <button class="btn ghost" style="color:red; background: rgba(255,0,0,0.1); border-radius: 50%; width: 35px; height: 35px; display:flex; align-items:center; justify-content:center;" onclick="this.closest('.modal-overlay').remove()">❌</button>
+                    </div>
+                    <div id="dynamicInventoriesContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Items injected via JS -->
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            renderInventoriesHeader();
+            if (typeof beep === 'function') beep(1200, 0.02, 0.03);
+        }
+
+        function renderInventoriesHeader() {
+            const container = document.getElementById('dynamicInventoriesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            const date = dateInput ? dateInput.value : (new Date()).toISOString().slice(0, 10);
+
+            inventoriesConfig.forEach(inv => {
+                const stockKey = `acc_inv_stock_${inv.id}_${date}`;
+                let stock = { u1: '0', u2: '0' };
+                // Also migrate OLD egg stock if exists
+                if (inv.id === 'inv_egg') {
+                    const oldStockKey = `acc_egg_stock_${date}`;
+                    if (localStorage.getItem(oldStockKey) && !localStorage.getItem(stockKey)) {
+                        let oldEgg = JSON.parse(localStorage.getItem(oldStockKey));
+                        stock = { u1: oldEgg.plates || '0', u2: oldEgg.pieces || '0' };
+                        localStorage.setItem(stockKey, JSON.stringify(stock));
+                    }
+                }
+                const raw = localStorage.getItem(stockKey);
+                if (raw) {
+                    try { stock = JSON.parse(raw); } catch (e) { }
+                }
+
+                const isEmpty = (stock.u1 == 0 && stock.u2 == 0);
+                const textColor = isEmpty ? '#aaa' : '#fff';
+
+                const html = `
+    <div class="electric-border-box" onclick="openInventoryModal('${inv.id}')" title="أضغط لتفاصيل ${inv.name}"
+        style="background: linear-gradient(var(--angle, 0deg), ${inv.borderColor}, #10b981, ${inv.borderColor}); flex-shrink: 0; min-width: 120px;">
+        <div class="electric-content" style="background: linear-gradient(145deg, ${inv.color1}, ${inv.color2});">
+            <span style="font-size: 11px; color: #bbf7d0; margin-bottom: 2px;">${inv.icon} ${inv.name}</span>
+            <div style="font-weight: bold; font-size: 14px; color: ${textColor}; white-space: nowrap;">
+                ${stock.u1} ${inv.unit1} | ${stock.u2} ${inv.unit2}
+            </div>
+        </div>
+    </div>
+    `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function openInventoryModal(invId) {
+            const inv = inventoriesConfig.find(i => i.id === invId);
+            if (!inv) return;
+            const date = dateInput ? dateInput.value : (new Date()).toISOString().slice(0, 10);
+            const stockKey = `acc_inv_stock_${inv.id}_${date}`;
+            let stock = { u1: '0', u2: '0' };
+            const raw = localStorage.getItem(stockKey);
+            if (raw) {
+                try { stock = JSON.parse(raw); } catch (e) { }
+            }
+
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+    <div class="modal-box" style="max-width: 400px; border: 1px solid ${inv.borderColor};">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 40px; margin-bottom: 10px;">${inv.icon}</div>
+            <h3 style="color: ${inv.borderColor};">تحديث ${inv.name}</h3>
+            <p style="font-size: 12px; color: var(--muted);">تاريخ: ${date}</p>
+        </div>
+
+        <div style="display: grid; gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #ddd;">رصيد (${inv.unit1})</label>
+                <input type="number" id="modalStockU1" value="${stock.u1}" class="custom-input"
+                    style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; width: 100%; border: 1px solid #444; color: #fff; font-size: 18px; text-align: center;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #ddd;">رصيد (${inv.unit2})</label>
+                <input type="number" id="modalStockU2" value="${stock.u2}" class="custom-input"
+                    style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; width: 100%; border: 1px solid #444; color: #fff; font-size: 18px; text-align: center;">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn green glowing" onclick="saveInventoryStockFromModal('${inv.id}')"
+                style="flex: 1; padding: 12px;">حفظ الرصيد</button>
+            <button class="btn red" onclick="this.closest('.modal-overlay').remove()"
+                style="flex: 1; padding: 12px;">إلغاء</button>
+        </div>
+    </div>
+    `;
+            document.body.appendChild(overlay);
+            setTimeout(() => { const i = document.getElementById('modalStockU1'); if (i) i.focus(); }, 100);
+            if (typeof beep === 'function') beep(600, 0.02, 0.03);
+        }
+
+        window.saveInventoryStockFromModal = function (invId) {
+            const u1 = document.getElementById('modalStockU1').value || '0';
+            const u2 = document.getElementById('modalStockU2').value || '0';
+            const date = dateInput ? dateInput.value : (new Date()).toISOString().slice(0, 10);
+            const stockKey = `acc_inv_stock_${invId}_${date}`;
+            localStorage.setItem(stockKey, JSON.stringify({ u1: u1, u2: u2 }));
+
+            // Clean legacy to force sync migration effect
+            if (invId === 'inv_egg') {
+                localStorage.setItem(`acc_egg_stock_${date}`, JSON.stringify({ plates: u1, pieces: u2 }));
+            }
+
+            renderInventoriesHeader();
+            const modals = document.querySelectorAll('.modal-overlay');
+            if (modals.length > 0) modals[modals.length - 1].remove();
+
+            if (typeof showToast === 'function') showToast('✅ تم تحديث الرصيد بنجاح', 'success');
+            if (typeof beep === 'function') beep(1000, 0.04, 0.06);
+
+            if (window.saveToCloud) window.saveToCloud();
+        };
+
+        // Settings Render functions for Inventories
+        window.renderInventoriesSettings = function () {
+            const container = document.getElementById('inventoriesListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            inventoriesConfig.forEach((inv, index) => {
+                const el = document.createElement('div');
+                el.style.background = 'rgba(255,255,255,0.05)';
+                el.style.padding = '15px';
+                el.style.borderRadius = '8px';
+                el.style.border = `1px solid ${inv.borderColor}`;
+
+                el.innerHTML = `
+    <div style="display:flex; gap:10px; margin-bottom: 10px;">
+        <div style="flex:1;">
+            <label style="font-size:12px; color:var(--muted);">اسم المخزون</label>
+            <input type="text" id="inv_name_${index}" value="${inv.name}" class="custom-input"
+                style="width:100%; background: rgba(0,0,0,0.2);">
+        </div>
+        <div style="width: 50px;">
+            <label style="font-size:12px; color:var(--muted);">رمز</label>
+            <input type="text" id="inv_icon_${index}" value="${inv.icon}" class="custom-input"
+                style="width:100%; text-align:center; background: rgba(0,0,0,0.2);">
+        </div>
+    </div>
+    <div style="display:flex; gap:10px; margin-bottom: 10px;">
+        <div style="flex:1;">
+            <label style="font-size:12px; color:var(--muted);">وحدة كبرى (مثل: طبق / كرتونة)</label>
+            <input type="text" id="inv_u1_${index}" value="${inv.unit1}" class="custom-input"
+                style="width:100%; background: rgba(0,0,0,0.2);">
+        </div>
+        <div style="flex:1;">
+            <label style="font-size:12px; color:var(--muted);">وحدة صغرى (مثل: قطعة / كجم)</label>
+            <input type="text" id="inv_u2_${index}" value="${inv.unit2}" class="custom-input"
+                style="width:100%; background: rgba(0,0,0,0.2);">
+        </div>
+    </div>
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <button class="btn green small" onclick="saveInventoryDef('${index}')">حفظ التعديل</button>
+        <button class="btn red small ghost" onclick="deleteInventoryDef('${index}')">🗑️ حذف</button>
+    </div>
+    `;
+                container.appendChild(el);
+            });
+        };
+
+        window.addNewInventoryDef = function () {
+            if (inventoriesConfig.length >= 5) {
+                if (typeof showToast === 'function') showToast('❌ أقصى عدد للمخزونات هو 5', 'error');
+                return;
+            }
+            const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+            const newId = 'inv_' + Date.now();
+            inventoriesConfig.push({
+                id: newId,
+                name: 'مخزون جديد',
+                unit1: 'كرتونة',
+                unit2: 'قطعة',
+                icon: '📦',
+                color1: '#1e3a8a',
+                color2: '#1d4ed8',
+                borderColor: colors[inventoriesConfig.length % colors.length]
+            });
+            saveInventoriesConfig();
+        };
+
+        window.saveInventoryDef = function (index) {
+            const inv = inventoriesConfig[index];
+            inv.name = document.getElementById('inv_name_' + index).value || 'بدون اسم';
+            inv.icon = document.getElementById('inv_icon_' + index).value || '📦';
+            inv.unit1 = document.getElementById('inv_u1_' + index).value || 'وحدة 1';
+            inv.unit2 = document.getElementById('inv_u2_' + index).value || 'وحدة 2';
+            saveInventoriesConfig();
+            if (typeof showToast === 'function') showToast('✅ تم الحفظ بنجاح', 'success');
+        };
+
+        window.deleteInventoryDef = function (index) {
+            if (inventoriesConfig[index].id === 'inv_egg') {
+                if (!confirm('هل أنت متأكد من حذف رصيد البيض الأساسي؟')) return;
+            } else {
+                if (!confirm('هل أنت متأكد من حذف هذا المخزون ؟')) return;
+            }
+            inventoriesConfig.splice(index, 1);
+            saveInventoriesConfig();
+        };
+
+        // Hook rendering into loadData or DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            renderInventoriesHeader();
+            // Since settings layout might be opened late, we can intercept showSettingsModal
+            const origShowSettings = window.showSettingsModal;
+            window.showSettingsModal = function () {
+                origShowSettings();
+                setTimeout(renderInventoriesSettings, 100);
+            };
+        });
+
+        // Also we must re-render the header when the date changes
+        const dbDateInput = document.getElementById('dateInput');
+        if (dbDateInput) {
+            dbDateInput.addEventListener('change', renderInventoriesHeader);
+        }
+    </script>
+
     <!-- Firebase SDK (Modular) -->
     <!-- Firebase SDK (Compat - Works with file://) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -12049,7 +12468,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                             </div>
                         </div>
                     </div>`;
-                    
+
                     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
                     document.getElementById('btn-close-serial-modal').addEventListener('click', () => {
@@ -12061,7 +12480,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                         const serialCard = document.getElementById('serial-card');
                         const origBg = serialCard.style.background;
                         serialCard.style.background = '#111'; // make sure it's dark for screenshot
-                        
+
                         // Hide buttons for screenshot
                         const btns = serialCard.querySelector('div[style*="display:flex;"]');
                         if (btns) btns.style.display = 'none';
@@ -12072,7 +12491,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                             link.href = canvas.toDataURL();
                             link.click();
                             alert('تم حفظ صورة الكود السري في جهازك! يرجى التأكد من الاحتفاظ بها في مكان آمن.');
-                            
+
                             if (btns) btns.style.display = 'flex';
                         }).catch(err => {
                             alert('حدث خطأ أثناء حفظ الصورة.');
@@ -12135,7 +12554,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                                         registered: true,
                                         createdAt: new Date().toISOString()
                                     }, { merge: true }).catch(e => console.error(e));
-                                    
+
                                     const offlineSerials = JSON.parse(localStorage.getItem('acc_registered_serials') || '[]');
                                     if (!offlineSerials.includes(serial)) {
                                         offlineSerials.push(serial);
@@ -12157,16 +12576,84 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                     }
                 });
 
-                // إضافة زر تسجيل خروج للأعلى (بجانب العنوان)
-                const titleHeaderContainer = document.querySelector('.title-container');
-                if (titleHeaderContainer) {
-                    titleHeaderContainer.insertAdjacentHTML('afterend', `<button id="header-logout-btn" class="btn ghost" style="display:none; margin-right:10px; font-size:12px; padding:6px 12px; color:var(--danger); border-color:var(--danger);">تسجيل خروج</button>`);
-                    document.getElementById('header-logout-btn').addEventListener('click', () => {
-                        if (confirm('هل أنت متأكد من تسجيل الخروج؟ تاكد أنك تحفظ الكود السري الخاص بك للعودة مجدداً.')) {
+                // إضافة زر تسجيل خروج للأعلى (في شريط الأدوات بتصميم مميز)
+                const toolsContainer = document.querySelector('.header-controls .system-tools');
+                if (toolsContainer) {
+                    // Remove if already exists
+                    const existing = document.getElementById('header-logout-btn');
+                    if (existing) existing.remove();
+
+                    const userName = localStorage.getItem('acc_user_name') || 'المستخدم';
+                    const logoutBtnHtml = `
+                    <button id="header-logout-btn" class="btn-logout-premium" title="حساب: ${userName}">
+                        <div class="user-info-mini">
+                            <span class="user-name-text" style="font-size: 11px; opacity: 0.8; margin-left: 5px;">${userName}</span>
+                        </div>
+                        <div class="logout-icon-box">
+                           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        </div>
+                        <span class="logout-text">خروج</span>
+                    </button>
+                    <style>
+                        .btn-logout-premium {
+                            display: none; 
+                            align-items: center;
+                            gap: 4px;
+                            padding: 6px 14px;
+                            background: rgba(239, 68, 68, 0.08);
+                            border: 1px solid rgba(239, 68, 68, 0.3);
+                            border-radius: 12px;
+                            color: #f87171;
+                            cursor: pointer;
+                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                            font-size: 13px;
+                            font-weight: 700;
+                            backdrop-filter: blur(10px);
+                            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                            margin-right: 10px;
+                        }
+                        .btn-logout-premium:hover {
+                            background: #ef4444;
+                            border-color: #ef4444;
+                            color: #fff;
+                            transform: translateY(-2px);
+                        }
+                        .user-info-mini {
+                            display: flex;
+                            align-items: center;
+                            border-left: 1px solid rgba(239,68,68,0.2);
+                            margin-left: 8px;
+                            padding-left: 8px;
+                        }
+                        .logout-icon-box {
+                            display: flex;
+                            align-items: center;
+                            transition: transform 0.3s;
+                        }
+                        .btn-logout-premium:hover .logout-icon-box {
+                            transform: translateX(-3px);
+                        }
+                        @media (max-width: 800px) {
+                            .user-name-text, .logout-text { display: none; }
+                            .user-info-mini { border: none; margin: 0; padding: 0; }
+                            .btn-logout-premium { padding: 10px; border-radius: 50%; }
+                        }
+                    </style>
+                    `;
+                    toolsContainer.insertAdjacentHTML('beforeend', logoutBtnHtml);
+
+                    const btn = document.getElementById('header-logout-btn');
+                    btn.addEventListener('click', () => {
+                        if (confirm('🔒 هل أنت متأكد من تسجيل الخروج؟\n\nتأكد أنك تحفظ "الكود السري" الخاص بك للعودة مجدداً لهذا الحساب.')) {
                             localStorage.removeItem('app_auth_serial');
                             location.reload();
                         }
                     });
+
+                    // Add a small device count badge next to logout if possible
+                    const badgeHtml = `<span id="header-device-badge" title="الأجهزة المتصلة" style="position: absolute; top: -5px; right: -5px; background: var(--success); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; border: 2px solid var(--neu-bg); font-weight: bold; z-index: 5;">0</span>`;
+                    btn.style.position = 'relative';
+                    btn.insertAdjacentHTML('beforeend', badgeHtml);
                 }
             }
 
@@ -12187,8 +12674,80 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
 
                 console.log("👤 User Authenticated with Serial:", globalUserId);
 
+                // Update device list in Firebase
+                if (typeof db !== 'undefined' && firebaseConfig && firebaseConfig.apiKey !== "YOUR_API_KEY_HIDDEN" && navigator.onLine) {
+                    let devId = localStorage.getItem('acc_device_id');
+                    if (!devId) {
+                        devId = 'DEV_' + Math.random().toString(36).substr(2, 9);
+                        localStorage.setItem('acc_device_id', devId);
+                    }
+                    db.collection("users").doc(globalUserId).collection("devices").doc(devId).set({
+                        lastSeen: new Date().toISOString(),
+                        name: localStorage.getItem('acc_user_name') || 'جهاز غير مسمى',
+                        platform: navigator.platform || 'غير معروف'
+                    }, { merge: true }).catch(console.error);
+                }
+
                 // نشغل المزامنة
                 startRealtimeSync();
+            }
+
+            function fetchConnectedDevices() {
+                const section = document.getElementById('connectedDevicesSection');
+                const countBadge = document.getElementById('connectedDevicesCount');
+                const headerBadge = document.getElementById('header-device-badge');
+
+                if (!globalUserId) return;
+
+                if (typeof db !== 'undefined' && firebaseConfig && firebaseConfig.apiKey !== "YOUR_API_KEY_HIDDEN") {
+                    if (section) section.style.display = 'flex';
+                    
+                    if (!navigator.onLine) {
+                        if (countBadge) countBadge.innerText = "أنت حالياً أوفلاين (غير متصل بالنت)";
+                        return;
+                    }
+
+                    db.collection("users").doc(globalUserId).collection("devices").get().then(snap => {
+                        let totalCount = snap.size;
+                        let activeCount = 0;
+                        const now = new Date();
+                        
+                        snap.forEach(doc => {
+                            const data = doc.data();
+                            if (data.lastSeen) {
+                                const last = new Date(data.lastSeen);
+                                const diffHours = (now - last) / (1000 * 60 * 60);
+                                if (diffHours <= 24) activeCount++;
+                            }
+                        });
+
+                        if (countBadge) {
+                            countBadge.innerHTML = `
+                                يوجد <b style="color:var(--gold1);">${totalCount}</b> أجهزة مرتبطة بهذا السريال.<br>
+                                <span style="font-size:10px; opacity:0.8;">(${activeCount} جهاز نشط مؤخراً)</span>
+                            `;
+                        }
+
+                        if (headerBadge) {
+                            headerBadge.innerText = totalCount;
+                            headerBadge.style.display = totalCount > 1 ? 'flex' : 'none';
+                        }
+                    }).catch(err => {
+                        console.warn("Fetch devices error:", err);
+                        if (countBadge) countBadge.innerText = "جاري الاتصال بالسحابة...";
+                    });
+                } else {
+                    // Show it anyway in settings but with account info
+                    if (section) {
+                        section.style.display = 'flex';
+                        if (countBadge) {
+                            countBadge.innerHTML = `
+                                <span style="color:var(--muted)">وضع العمل المحلي (Offline)</span><br>
+                                <span style="font-size:10px;">اربط حساب Firebase لتفعيل المزامنة.</span>
+                            `;
+                        }
+                    }
+                }
             }
 
             // الاستماع لحالة تسجيل الدخول محلياً عند فتح التطبيق
@@ -12196,6 +12755,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
             if (savedSerial) {
                 // المستخدم مسجل دخول من قبل
                 loginWithSerial(savedSerial);
+                setTimeout(fetchConnectedDevices, 1000); // Wait for initialization
             } else {
                 // مستخدم جديد أو مسجل خروج
                 document.getElementById('auth-overlay').style.display = 'flex';
@@ -12246,8 +12806,8 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                             // 2. إذا كان السيرفر لديه بيانات أقل، فهذا يمكن أن يكون بسبب حذف متعمد!
                             // قمنا بتعطيل جزء رفض البيانات إذا كان السيرفر أقل لنسمح بعمليات الحذف بالتزامن
                             /*
-                            if (cloudCount < localCount) {
-                                console.warn(\`⚠️ تجاهل تحديث السيرفر: المحلي (\${localCount}) أكثر من السيرفر (\${cloudCount}).\`);
+                            if (cloudCount <localCount) {
+                                console.warn(`⚠️ تجاهل تحديث السيرفر: المحلي (${localCount}) أكثر من السيرفر (${cloudCount}).`);
                                 if (window.saveToCloud) window.saveToCloud();
                                 return;
                             }
@@ -12291,7 +12851,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
 
                             if (currentStockStr !== newStockStr) {
                                 localStorage.setItem(stockKey, newStockStr);
-                                if (typeof updateEggBalanceDisplay === 'function') updateEggBalanceDisplay();
+                                if (typeof renderInventoriesHeader === 'function') renderInventoriesHeader();
                             }
                         }
 
@@ -12345,7 +12905,8 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                         userPhone: localStorage.getItem('acc_user_phone') || '',
                         userNotes: localStorage.getItem('acc_user_notes') || '',
                         eggLabel: localStorage.getItem('acc_egg_label') || '🥚 رصيد البيض',
-                        customCategories: JSON.parse(localStorage.getItem('acc_custom_categories') || '[]')
+                        customCategories: JSON.parse(localStorage.getItem('acc_custom_categories') || '[]'),
+                        inventoriesConfig: inventoriesConfig
                     },
                     lastUpdated: new Date().toISOString(),
                     lastDevice: deviceType
@@ -12389,30 +12950,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
 
             // Hook: Egg Balance Modal Save
             // نعيد تعريف الدالة لتشمل المزامنة
-            window.saveEggBalanceFromModal = function () {
-                const plates = document.getElementById('inputEggPlates').value || '0';
-                const pieces = document.getElementById('inputEggPieces').value || '0';
-                const date = document.getElementById('dateInput').value || (new Date()).toISOString().slice(0, 10);
-                const stockKey = `acc_egg_stock_${date}`;
-
-                const data = {
-                    plates: plates,
-                    pieces: pieces
-                };
-
-                localStorage.setItem(stockKey, JSON.stringify(data));
-                updateEggBalanceDisplay();
-
-                // Close modal
-                const overlay = document.querySelector('.modal-overlay');
-                if (overlay) overlay.remove();
-
-                showToast('✅ تم تحديث رصيد البيض ومزامنته', 'success');
-                beep(1000, 0.04, 0.06);
-
-                // Sync Now
-                if (window.saveToCloud) window.saveToCloud();
-            }
+            /* window.saveEggBalanceFromModal replaced */
 
             // Hook: Settings Save (User Profile)
             window.originalSaveUserProfile = window.saveUserProfileFromSettings;
