@@ -2420,19 +2420,9 @@
                 word-wrap: break-word;
             }
         }
-
-        #qr-reader__status_span,
-        #qr-reader__dashboard_section_csr span {
-            display: none !important;
-        }
-
-        #qr-reader__header_message {
-            display: none !important;
-        }
     </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <body class="theme-galaxy dark">
 
@@ -2443,9 +2433,15 @@
                     <h1 class="title-container" id="appTitle">تطبيق المحاسبة اليومي</h1>
                     <div class="header-controls">
                         <!-- Dynamic Inventories Button -->
-                        <button class="btn"
-                            style="background:var(--gold4);color:var(--gold1);padding:8px 12px;font-size:16px;border:1px solid var(--gold2); display:flex; align-items:center; gap:5px; flex-shrink:0;"
-                            onclick="openInventoriesSideMenu()" title="المخزون والأرصدة">📦 الأرصدة</button>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn"
+                                style="background:var(--gold4);color:var(--gold1);padding:8px 12px;font-size:16px;border:1px solid var(--gold2); display:flex; align-items:center; gap:5px; flex-shrink:0;"
+                                onclick="openInventoriesSideMenu()" title="المخزون والأرصدة">📦 الأرصدة</button>
+
+                            <button class="btn"
+                                style="background: linear-gradient(135deg, #1e3a8a, #312e81); color: #93c5fd; padding:8px 12px; font-size:16px; border:1px solid #60a5fa; display:flex; align-items:center; gap:5px; flex-shrink:0; box-shadow: 0 4px 10px rgba(30, 58, 138, 0.4);"
+                                onclick="showExternalBalancesModal()" title="حسابات خارجية (له وعليه)">💳 حساب خارجي</button>
+                        </div>
 
                         <!-- System Tools (Unified Left Group) -->
                         <div class="system-tools"
@@ -2458,12 +2454,15 @@
                                 title="النسخ الاحتياطي">💾</button>
                             <button class="btn" id="screenshotBtn" style="font-size: 16px; padding: 8px 12px;"
                                 title="لقطة شاشة">📸</button>
+                            <button class="btn" id="waShareBtn"
+                                style="font-size: 16px; padding: 8px 12px; color: #22c55e;"
+                                title="مشاركة التقرير عبر واتساب" onclick="shareToWhatsApp()">💬 واتساب</button>
+                            <button class="btn" id="tgShareBtn"
+                                style="font-size: 16px; padding: 8px 12px; color: #3b82f6;"
+                                title="مشاركة التقرير عبر تلجرام" onclick="shareToTelegram()">✈️ تلجرام</button>
                             <button class="btn" id="qrcodeBtn"
                                 style="font-size: 16px; padding: 8px 12px; color: #0ea5e9;"
                                 title="توليد وتصدير QR للتقرير" onclick="generateQRCodeModal()">📱 تصدير</button>
-                            <button class="btn" id="qrScannerBtn"
-                                style="font-size: 16px; padding: 8px 12px; color: #10b981;" title="قراءة تقرير بـ QR"
-                                onclick="openQRScannerModal()">🔍 قراءة</button>
                             <button class="btn" id="printBtn" style="font-size: 16px; padding: 8px 12px;"
                                 title="طباعة تقرير اليوم" onclick="printDailyReport()">🖨️</button>
                             <button class="btn" id="layoutToggleBtn" style="font-size: 16px; padding: 8px 12px;"
@@ -2516,6 +2515,22 @@
                         <div style="font-size: 24px; font-weight: bold; color: #c4b5fd; margin-bottom: 4px;">🟣</div>
                         <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">انستا باي</div>
                         <div style="font-size: 18px; font-weight: bold; color: #ffffff;" id="headerInstaPayTotal">0
+                        </div>
+                    </div>
+                    <!-- External Balances Card -->
+                    <div class="metric-card" onclick="showExternalBalancesModal()"
+                        style="background: linear-gradient(135deg, #1e3a8a, #312e81); border: 1px solid #60a5fa; border-radius: 12px; padding: 16px; text-align: center; transition: all .3s ease; box-shadow: 0 4px 15px rgba(30, 58, 138, 0.5); cursor: pointer; position: relative;">
+                        <div style="font-size: 24px; font-weight: bold; color: #93c5fd; margin-bottom: 4px;">💳</div>
+                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">حسابات خارجية (له وعليه)</div>
+                        <div
+                            style="display: flex; justify-content: space-around; font-size: 14px; font-weight: bold; width: 100%;">
+                            <div style="color:#4ade80;" title="له"><span
+                                    style="font-size:10px; color:#a7f3d0; margin-bottom:2px; display:block;">له
+                                    (ك)</span><span id="extOwedToMe">0</span></div>
+                            <div style="width: 1px; background: rgba(255,255,255,0.2);"></div>
+                            <div style="color:#f87171;" title="عليه"><span
+                                    style="font-size:10px; color:#fecaca; margin-bottom:2px; display:block;">عليه
+                                    (دين)</span><span id="extOwedByMe">0</span></div>
                         </div>
                     </div>
                 </div>
@@ -3856,10 +3871,9 @@
             records.forEach(op => {
                 if (searchTerm) {
                     const totalAmt = Number(op.top || 0) + Number(op.bottom || 0);
-                    // filter out admin from search text
+                    // allow searching by any user
                     const safeUser = (op.user || '').toLowerCase();
-                    const filteredUser = (safeUser === 'admin' || safeUser === 'المدير' || safeUser === 'ادمن') ? '' : op.user;
-                    const text = `${op.category} ${op.notes || ''} ${op.top || ''} ${op.bottom || ''} ${totalAmt} ${filteredUser}`.toLowerCase();
+                    const text = `${op.category} ${op.notes || ''} ${op.top || ''} ${op.bottom || ''} ${totalAmt} ${safeUser}`.toLowerCase();
                     if (!text.includes(searchTerm)) return;
                 }
                 const isSales = op.category === 'مبيعات';
@@ -3874,7 +3888,7 @@
                     isSales: isSales,
                     notes: op.notes,
                     device: op.device, // Pass device type to view data
-                    user: (['admin', 'المدير', 'ادمن'].includes((op.user || '').toLowerCase())) ? '' : op.user // Pass user name without admin text
+                    user: op.user // Pass user name directly
                 });
             });
 
@@ -3916,6 +3930,7 @@
             } else {
                 tableData.forEach((item, index) => {
                     const row = document.createElement('tr');
+                    if (item.id) row.id = 'row-' + item.id;
 
                     const actionsHtml = `
             <button class="btn blue" style="padding: 6px 10px; font-size: 12px;" title="تعديل العملية" onclick="showEditModal('${item.id}')">
@@ -4788,199 +4803,6 @@
             if (modal) modal.remove();
         }
 
-        /* ---------- QR Code Reader (Scanner) ---------- */
-        window.openQRScannerModal = function () {
-            const modal = document.createElement('div');
-            modal.id = 'qrScannerModal';
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center;
-                z-index: 999999; backdrop-filter: blur(8px); direction: rtl;
-            `;
-
-            modal.innerHTML = `
-                <div style="background: var(--neu-bg, #111); padding: 25px; border-radius: 20px; width: 90%; max-width: 450px;
-                            border: 2px solid var(--gold2); box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0; color: var(--gold2); font-size: 20px;">🔍 قراءة البيانات من الباركود (QR)</h3>
-                        <button class="btn ghost" style="color:red;" onclick="closeQRReader()">❌</button>
-                    </div>
-                    
-                    <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; font-size: 13px; color: var(--success); margin-bottom: 15px; text-align: right;">
-                        💡 يرجى توجيه الكاميرا إلى الـ QR Code من الهاتف الآخر لاستيراد عملياته.
-                    </div>
-
-                    <div id="qr-reader" style="width: 100%; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);"></div>
-                    <div id="qr-reader-results" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; display: none; overflow-y: auto; max-height: 250px; text-align: right;">
-                    </div>
-                    <button class="btn green" id="applyScanBtn" style="display: none; margin-top: 15px; width: 100%;">📥 استيراد العمليات للتطبيق</button>
-                    <button class="btn" id="rescanBtn" style="display: none; margin-top: 10px; width: 100%;" onclick="startScanner()">🔄 فحص مرة أخرى</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            startScanner();
-        }
-
-        function startScanner() {
-            document.getElementById('qr-reader').style.display = 'block';
-            document.getElementById('qr-reader-results').style.display = 'none';
-            document.getElementById('applyScanBtn').style.display = 'none';
-            document.getElementById('rescanBtn').style.display = 'none';
-
-            if (window.html5QrcodeScanner) {
-                try { window.html5QrcodeScanner.clear(); } catch (e) { }
-            }
-
-            window.html5QrcodeScanner = new Html5QrcodeScanner(
-                "qr-reader", {
-                fps: 20,
-                qrbox: { width: 280, height: 280 },
-                rememberLastUsedCamera: true,
-                aspectRatio: 1.0,
-                showTorchButtonIfSupported: true
-            }, false
-            );
-
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-        }
-
-        function onScanSuccess(decodedText, decodedResult) {
-            try {
-                console.log("Scanner detected text:", decodedText);
-                let operations = null;
-                let reportInfo = { num: 'N/A', date: 'غير محدد' };
-
-                // 1. Check if it's the URL/Encoded format (New format)
-                if (decodedText.indexOf('data=') !== -1) {
-                    try {
-                        const parts = decodedText.split('data=');
-                        const encodedData = parts[1].split('&')[0].split('#')[0];
-                        const rawJson = decodeURIComponent(escape(atob(encodedData)));
-                        operations = JSON.parse(rawJson);
-
-                        const numMatch = decodedText.match(/report=([^&#\s]+)/);
-                        const dateMatch = decodedText.match(/date=([^&#\s]+)/);
-                        if (numMatch) reportInfo.num = numMatch[1];
-                        if (dateMatch) reportInfo.date = dateMatch[1];
-                    } catch (e) { console.error("URL Parse error", e); }
-                }
-
-                // 2. If not yet found, check if it's raw JSON
-                if (!operations && (decodedText.startsWith('[') || decodedText.startsWith('{'))) {
-                    try { operations = JSON.parse(decodedText); } catch (e) { }
-                }
-
-                // 3. Check for Old Text Format (REP:...)
-                if (!operations && decodedText.startsWith('REP:')) {
-                    const lines = decodedText.split('\n');
-                    const transIdx = lines.findIndex(l => l.includes('--TRANS--'));
-                    const totalIdx = lines.findIndex(l => l.includes('--TOTAL--'));
-                    if (transIdx !== -1 && totalIdx !== -1) {
-                        const transData = lines.slice(transIdx + 1, totalIdx);
-                        operations = transData.map(l => {
-                            const p = l.split('|');
-                            return {
-                                category: p[1] || 'غير معروف',
-                                top: parseFloat(p[2]) || 0,
-                                bottom: parseFloat(p[3]) || 0,
-                                notes: p[4] || '',
-                                timestamp: p[0] || new Date().toISOString()
-                            };
-                        });
-                        reportInfo.num = (lines[0].split(':')[1] || 'N/A').trim();
-                        reportInfo.date = (lines[1].split(':')[1] || '').trim();
-                    }
-                }
-
-                if (!operations || !Array.isArray(operations)) {
-                    // Not our format, ignore or log
-                    return;
-                }
-
-                // Map compressed to full if needed
-                if (operations.length > 0 && operations[0].c !== undefined) {
-                    operations = operations.map(o => ({
-                        id: 'imp_' + Math.random().toString(36).substr(2, 9),
-                        category: o.c,
-                        top: parseFloat(o.t) || 0,
-                        bottom: parseFloat(o.b) || 0,
-                        notes: o.n || '',
-                        timestamp: o.s || new Date().toISOString()
-                    }));
-                } else if (operations.length > 0 && !operations[0].id) {
-                    operations = operations.map(o => ({
-                        ...o,
-                        id: 'imp_' + Math.random().toString(36).substr(2, 9),
-                        timestamp: o.timestamp || new Date().toISOString()
-                    }));
-                }
-
-                // Stop scanning and show results
-                try {
-                    if (window.html5QrcodeScanner) window.html5QrcodeScanner.clear();
-                } catch (e) { }
-
-                const readerZone = document.getElementById('qr-reader');
-                if (readerZone) readerZone.style.display = 'none';
-
-                const resDiv = document.getElementById('qr-reader-results');
-                if (resDiv) {
-                    resDiv.style.display = 'block';
-                    resDiv.innerHTML = `
-                        <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:15px;">
-                            <h4 style="color:var(--gold2); margin:0 0 5px 0;">📑 تم العثور على تقرير</h4>
-                            <p style="color:var(--muted); font-size:12px; margin:0;">رقم: ${reportInfo.num} | بتاريخ: ${reportInfo.date}</p>
-                        </div>
-                        <p style="color:#fff; margin-bottom:12px;">يحتوي على <b style="color:var(--success); font-size:18px;">${operations.length}</b> عملية جاهزة للاستيراد.</p>
-                        <div style="max-height:150px; overflow-y:auto; padding-right:5px;">
-                            ${operations.slice(0, 5).map(o => `
-                                <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; margin-bottom:6px; border:1px solid rgba(255,255,255,0.05); font-size:12px; display:flex; justify-content:space-between;">
-                                    <span style="color:var(--gold1);">${o.category}</span>
-                                    <span>${o.top ? '+' + formatNum(o.top) : '-' + formatNum(o.bottom)}</span>
-                                </div>
-                            `).join('')}
-                            ${operations.length > 5 ? `<p style="text-align:center; font-size:11px; color:var(--muted); margin:5px 0 0 0;">...و ${operations.length - 5} عمليات أخرى</p>` : ''}
-                        </div>
-                    `;
-                }
-
-                const applyBtn = document.getElementById('applyScanBtn');
-                const rescanBtn = document.getElementById('rescanBtn');
-                if (applyBtn) applyBtn.style.display = 'block';
-                if (rescanBtn) rescanBtn.style.display = 'block';
-
-                if (applyBtn) {
-                    applyBtn.onclick = function () {
-                        if (confirm(`⚠️ استيراد العمليات؟\nسيتم إضافة ${operations.length} عملية إلى سجلاتك الحالية.`)) {
-                            records = [...records, ...operations];
-                            if (typeof saveToStorage === 'function') saveToStorage();
-                            if (typeof render === 'function') render();
-                            if (window.closeQRReader) window.closeQRReader();
-                            if (typeof showToast === 'function') showToast('✅ تم الاستيراد بنجاح!', 'success');
-                            if (typeof beep === 'function') beep(1500, 0.05, 0.05);
-                        }
-                    };
-                }
-
-            } catch (e) {
-                console.error("Scanner parsing error:", e);
-                // Continue scanning
-            }
-        }
-
-        function onScanFailure(error) {
-            // Ignore background errors
-        }
-
-        window.closeQRReader = function () {
-            if (window.html5QrcodeScanner) {
-                try { window.html5QrcodeScanner.clear(); } catch (e) { }
-            }
-            const m = document.getElementById('qrScannerModal');
-            if (m) m.remove();
-        }
-
         function downloadQRCode() {
             const canvas = document.querySelector('#qrcodeDisplay canvas');
             if (canvas) {
@@ -5564,29 +5386,97 @@
 
         function exportTableData() {
             const date = dateInput.value || (new Date()).toISOString().slice(0, 10);
-            let csv = 'الوقت,الفئة,فوق,تحت,الإجمالي,الملاحظات\n';
-            const rows = aggTbody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if (cells.length >= 6) {
-                    const time = cells[0].textContent.trim();
-                    const category = cells[1].textContent.trim();
-                    const top = cells[2].textContent.trim();
-                    const bottom = cells[3].textContent.trim();
-                    const total = cells[4].textContent.trim();
-                    const notes = cells[5].textContent.trim();
-                    csv += `"${time}", "${category}", "${top}", "${bottom}", "${total}", "${notes}"\n`;
+
+            // تهيئة النصوص للتعامل مع الإكسيل (BOM لدعم اللغة العربية)
+            let csv = '\ufeff';
+
+            // ترويسة التقرير الشامل
+            csv += `تقرير يوم العمل: ${date}\n\n`;
+
+            // إضافة الأرصدة
+            let inventoriesConfig = [];
+            try { inventoriesConfig = JSON.parse(localStorage.getItem('acc_inventories_config')) || []; } catch (e) { }
+
+            csv += `"الأرصدة والمخزون"\n`;
+            if (inventoriesConfig.length === 0) {
+                const stockKey = `acc_egg_stock_${date}`;
+                const stockDataRaw = localStorage.getItem(stockKey);
+                let plates = '0', pieces = '0';
+                if (stockDataRaw) {
+                    try {
+                        const stock = JSON.parse(stockDataRaw);
+                        plates = stock.plates; pieces = stock.pieces;
+                    } catch (e) { }
                 }
-            });
-            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+                csv += `"رصيد البيض", "${plates} طبق", "${pieces} قطعة"\n`;
+            } else {
+                inventoriesConfig.forEach(inv => {
+                    const stockKey = `acc_inv_stock_${inv.id}_${date}`;
+                    let stock = { u1: '0', u2: '0' };
+                    if (inv.id === 'inv_egg') {
+                        const oldStockKey = `acc_egg_stock_${date}`;
+                        if (localStorage.getItem(oldStockKey) && !localStorage.getItem(stockKey)) {
+                            try {
+                                let oldEgg = JSON.parse(localStorage.getItem(oldStockKey));
+                                stock = { u1: oldEgg.plates || '0', u2: oldEgg.pieces || '0' };
+                                localStorage.setItem(stockKey, JSON.stringify(stock));
+                            } catch (e) { }
+                        }
+                    }
+                    const raw = localStorage.getItem(stockKey);
+                    if (raw) { try { stock = JSON.parse(raw); } catch (e) { } }
+                    csv += `"${inv.name}", "${stock.u1} ${inv.unit1}", "${stock.u2} ${inv.unit2}"\n`;
+                });
+            }
+            csv += `\n`;
+
+            // إضافة الإجماليات
+            csv += `"إجماليات اليوم"\n`;
+            csv += `"إجمالي الفوق (الداخل)", "${sumTopEl.textContent}"\n`;
+            csv += `"إجمالي التحت (الخارج)", "${sumBottomEl.textContent}"\n`;
+            csv += `"إجمالي المبيعات", "${salesTotalEl.textContent}"\n`;
+            csv += `"الصافي الكلي", "${diffTotalEl.textContent}"\n`;
+            csv += `\n`;
+
+            // ترويسة جدول العمليات
+            csv += `"م","الوقت","الجهاز","الفئة","فوق","تحت","الإجمالي","الملاحظات","المستخدم"\n`;
+
+            const rows = aggTbody.querySelectorAll('tr');
+            if (rows.length === 1 && rows[0].cells.length === 1) {
+                csv += `"لا توجد عمليات اليوم"\n`;
+            } else {
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 9) { // تخطي عمود الإجراءات الأخير
+                        const id = cells[0].textContent.trim().replace(/"/g, '""');
+                        const time = cells[1].textContent.trim().replace(/"/g, '""');
+                        const device = cells[2].textContent.trim().replace(/"/g, '""');
+                        const category = cells[3].textContent.trim().replace(/"/g, '""');
+                        const top = cells[4].textContent.trim().replace(/"/g, '""');
+                        const bottom = cells[5].textContent.trim().replace(/"/g, '""');
+                        const total = cells[6].textContent.trim().replace(/"/g, '""');
+                        const notes = cells[7].textContent.trim().replace(/"/g, '""');
+                        const user = cells[8].textContent.trim().replace(/"/g, '""');
+
+                        csv += `"${id}","${time}","${device}","${category}","${top}","${bottom}","${total}","${notes}","${user}"\n`;
+                    }
+                });
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `جدول_الفئات_${date}.csv`;
+            a.download = `تقرير_اليوم_${date}.csv`;
             a.click();
             URL.revokeObjectURL(url);
-            beep(1200, 0.04, 0.06);
-            alert('تم تصدير الجدول بنجاح');
+
+            if (typeof beep === 'function') beep(1200, 0.04, 0.06);
+            if (typeof showToast === 'function') {
+                showToast('✅ تم تصدير التقرير للإكسيل بنجاح', 'success');
+            } else {
+                alert('تم التصدير بنجاح');
+            }
         }
 
         /* ---------- Sharing ---------- */
@@ -5600,98 +5490,116 @@
 
 
         function shareReport(platform) {
-            // Get Egg Details for specific date
             const date = dateInput.value || (new Date()).toISOString().slice(0, 10);
             const sumTop = sumTopEl.textContent;
             const sumBottom = sumBottomEl.textContent;
             const salesTotal = salesTotalEl.textContent;
             const diffTotal = diffTotalEl.textContent;
-            const stockKey = `acc_egg_stock_${date}`;
-            const stockDataRaw = localStorage.getItem(stockKey);
-            let plates = '0';
-            let pieces = '0';
-            if (stockDataRaw) {
-                try {
-                    const stock = JSON.parse(stockDataRaw);
-                    plates = stock.plates;
-                    pieces = stock.pieces;
-                } catch (e) { }
+
+            let inventoriesText = '';
+            let inventoriesConfig = [];
+            try {
+                inventoriesConfig = JSON.parse(localStorage.getItem('acc_inventories_config')) || [];
+            } catch (e) { }
+
+            if (inventoriesConfig.length === 0) {
+                const stockKey = `acc_egg_stock_${date}`;
+                const stockDataRaw = localStorage.getItem(stockKey);
+                let plates = '0', pieces = '0';
+                if (stockDataRaw) {
+                    try {
+                        const stock = JSON.parse(stockDataRaw);
+                        plates = stock.plates; pieces = stock.pieces;
+                    } catch (e) { }
+                }
+                inventoriesText = `🥚 رصيد البيض: ${plates} طبق | ${pieces} قطعة\n`;
+            } else {
+                inventoriesConfig.forEach(inv => {
+                    const stockKey = `acc_inv_stock_${inv.id}_${date}`;
+                    let stock = { u1: '0', u2: '0' };
+                    if (inv.id === 'inv_egg') {
+                        const oldStockKey = `acc_egg_stock_${date}`;
+                        if (localStorage.getItem(oldStockKey) && !localStorage.getItem(stockKey)) {
+                            try {
+                                let oldEgg = JSON.parse(localStorage.getItem(oldStockKey));
+                                stock = { u1: oldEgg.plates || '0', u2: oldEgg.pieces || '0' };
+                                localStorage.setItem(stockKey, JSON.stringify(stock));
+                            } catch (e) { }
+                        }
+                    }
+                    const raw = localStorage.getItem(stockKey);
+                    if (raw) {
+                        try { stock = JSON.parse(raw); } catch (e) { }
+                    }
+                    inventoriesText += `${inv.icon} ${inv.name}: ${stock.u1} ${inv.unit1} | ${stock.u2} ${inv.unit2}\n`;
+                });
             }
-            const eggBalanceText = `🥚 رصيد البيض: ${plates} طبق و ${pieces} قطعة`;
 
             const separator = '━━━━━━━━━━━━━━━━━━';
 
             let message = `🧾 تقرير يوم: ${date} 🧾\n`;
-            message += `${separator} \n`;
+            message += `${separator}\n`;
 
-            // Financial Summary with Emojis
-            message += `* ${eggBalanceText}*\n\n`;
-            message += `⬆️ إجمالي فوق: ${sumTop} \n`;
-            message += `⬇️ إجمالي تحت: ${sumBottom} \n\n`;
-            message += `🟢 إجمالي المبيعات: * ${salesTotal}*\n`;
-            message += `🔵 فرق اليوم الصافي: * ${diffTotal}*\n`;
-            message += `${separator} \n`;
+            message += `📦 الأرصدة 📦\n`;
+            message += `${inventoriesText}\n`;
+            message += `${separator}\n`;
+            message += `⬆️ إجمالي الفوق (الداخل): * ${sumTop} *\n`;
+            message += `⬇️ إجمالي التحت (الخارج): * ${sumBottom} *\n\n`;
+            message += `🟢 إجمالي المبيعات: * ${salesTotal} *\n`;
+            message += `🔵 فرق اليوم الصافي: * ${diffTotal} *\n`;
+            message += `${separator}\n`;
 
-            // Group operations by category
             const categoryGroups = {};
             records.forEach(op => {
-                if (!categoryGroups[op.category]) categoryGroups[op.category] = { ops: [], total: 0 };
+                if (!categoryGroups[op.category]) categoryGroups[op.category] = { ops: [], totalTop: 0, totalBottom: 0 };
                 categoryGroups[op.category].ops.push(op);
+                categoryGroups[op.category].totalTop += (op.top || 0);
+                categoryGroups[op.category].totalBottom += (op.bottom || 0);
             });
 
-            // Detailed Operations by Category
-            message += `📋 تفاصيل العمليات 📋\n`;
+            message += `📋 تفاصيل البنود والجهات 📋\n`;
             if (Object.keys(categoryGroups).length > 0) {
                 Object.keys(categoryGroups).sort().forEach(category => {
-                    const ops = categoryGroups[category];
-                    const totalBottom = ops.ops.reduce((sum, op) => sum + (op.bottom || 0), 0);
-                    message += `\n📁 * ${category}*\n`;
-                    if (category === 'مبيعات') {
-                        message += `   💰 المبلغ: * ${formatNum(totalBottom)}*\n`;
-                    } else {
-                        message += `   💸 المبلغ: * ${formatNum(totalBottom)}*\n`;
-                    }
-                    // Add operation times
-                    ops.ops.forEach(op => {
-                        message += `     🕒 ${op.timestamp} \n`;
+                    const group = categoryGroups[category];
+                    message += `\n📁 * ${category} *\n`;
+
+                    if (group.totalTop > 0) message += `   ⬆️ إجمالي (فوق): * ${formatNum(group.totalTop)} *\n`;
+                    if (group.totalBottom > 0) message += `   ⬇️ إجمالي (تحت): * ${formatNum(group.totalBottom)} *\n`;
+
+                    group.ops.forEach(op => {
+                        let opAmount = '';
+                        if (op.top > 0 && op.bottom > 0) {
+                            opAmount = `(فوق: ${formatNum(op.top)} | تحت: ${formatNum(op.bottom)})`;
+                        } else if (op.top > 0) {
+                            opAmount = `(فوق: ${formatNum(op.top)})`;
+                        } else if (op.bottom > 0) {
+                            opAmount = `(تحت: ${formatNum(op.bottom)})`;
+                        }
+
+                        let opNote = op.notes ? ` - ${op.notes}` : '';
+                        message += `     🕒 ${op.timestamp} ${opAmount}${opNote}\n`;
                     });
-                    message += `\n`;
                 });
             }
-            message += `${separator} \n`;
-
-            // Movement Summary
-            const totalOperations = records.length;
-            const aboveOperations = records.filter(op => (op.top || 0) > 0).length;
-            const belowOperations = records.filter(op => (op.bottom || 0) > 0).length;
-            const belowAmounts = records.filter(op => (op.bottom || 0) > 0).map(op => op.bottom);
-            const maxBelow = belowAmounts.length > 0 ? Math.max(...belowAmounts) : 0;
-            const minBelow = belowAmounts.length > 0 ? Math.min(...belowAmounts) : 0;
+            message += `\n${separator}\n`;
 
             message += `🔍 ملخص الحركات 🔍\n`;
-            message += `#️⃣ عدد العمليات: ${totalOperations} \n`;
-            message += `⬆️ عدد عمليات فوق: ${aboveOperations} \n`;
-            message += `⬇️ عدد عمليات تحت: ${belowOperations} \n`;
-            message += `🔺 أعلى عملية تحت: ${formatNum(maxBelow)} \n`;
-            message += `🔻 أقل عملية تحت: ${formatNum(minBelow)} \n`;
-            message += `${separator} \n`;
-            message += `©️ تطبيق المحاسبة اليومي - عمرو إيهاب`;
+            message += `#️⃣ عدد العمليات الإجمالي: ${records.length}\n`;
+            message += `${separator}\n`;
+            message += `©️ تطبيق المحاسبة اليومي`;
 
-            // Encode message for URL
             const encodedMessage = encodeURIComponent(message);
             let shareUrl = '';
 
             if (platform === 'whatsapp') {
                 shareUrl = `https://wa.me/?text=${encodedMessage}`;
             } else if (platform === 'telegram') {
-                // استخدام بروتوكول tg:// لتجنب خطأ 400 Bad Request من سيرفرات t.me مع النصوص الطويلة
                 shareUrl = `tg://msg?text=${encodedMessage}`;
-                // نسخ النص للحافظة كإجراء احتياطي
                 try { navigator.clipboard.writeText(message); } catch (e) { }
             }
 
             if (shareUrl) {
-                window.open(shareUrl, '_blank'); // Open in a new tab/window for better compatibility
+                window.open(shareUrl, '_blank');
                 beep(1000, 0.04, 0.06);
             }
         }
@@ -10587,70 +10495,111 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
             const categoryOptions = '<option value="">جميع الفئات</option>' +
                 Array.from(allCategories).sort().map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
 
+            if (document.getElementById('searchOverlay')) {
+                document.getElementById('searchOverlay').remove();
+            }
+
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
             overlay.id = 'searchOverlay';
             overlay.innerHTML = `
-        <div class="modal-box" style="max-width: 800px; background: linear-gradient(135deg, var(--gold1), #fff); border: 2px solid var(--gold2); box-shadow: 0 12px 40px rgba(0,0,0,0.3);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom: 1px solid var(--gold2); padding-bottom: 10px;">
-                <h3 style="margin:0; color: var(--gold4);">🔍 بحث واستعلام متقدم</h3>
-                <button class="btn ghost" style="padding:8px; color: var(--danger);" onclick="document.body.removeChild(this.closest('.modal-overlay'))"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXgiPjxsaW5lIHgxPSIxOCIgeDI9IjYiIHkxPSI2IiB5Mj0iMTgiLz48bGluZSB4MT0iNiIgeDI9IjE4IiB5MT0iNiIgeTI9IjE4Ii8+PC9zdmc+" class="icon" style="margin:0;"></button>
+        <div class="modal-box" style="max-width: 800px; background: linear-gradient(145deg, rgba(30, 40, 60, 0.95), rgba(20, 30, 45, 1)); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); box-shadow: 0 24px 60px rgba(0,0,0,0.6);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                <h3 style="margin:0; color: #fff; font-size: 20px; display:flex; align-items:center; gap: 8px;">
+                    <span style="font-size:24px;">🔍</span> بحث واستعلام متقدم
+                </h3>
+                <button class="btn ghost" style="padding:8px; color: var(--danger); background: rgba(239, 68, 68, 0.1); border-radius: 50%;" onclick="document.body.removeChild(this.closest('.modal-overlay'))">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXgiPjxsaW5lIHgxPSIxOCIgeDI9IjYiIHkxPSI2IiB5Mj0iMTgiLz48bGluZSB4MT0iNiIgeDI9IjE4IiB5MT0iNiIgeTI9IjE4Ii8+PC9zdmc+" class="icon" style="margin:0;">
+                </button>
             </div>
-            <div style="display:flex; gap:8px; margin-bottom:16px;">
-                <input type="text" id="searchInput" autocomplete="off" placeholder="ابحث بصيغة حرة: فئة, ملاحظة, مبلغ..." style="flex-grow:1; padding: 12px; font-size: 15px; border: 1px solid rgba(0,0,0,0.1); color: #111;">
-                <select id="searchCategory" style="width: auto; flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.9); color: #000; box-sizing: border-box; transition: all .2s ease; font-size:15px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);">
-                    ${categoryOptions}
-                </select>
-                <button class="btn blue" id="executeSearchBtn" style="padding: 12px 24px;">استعلام</button>
+            
+            <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;">
+                <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap: wrap;">
+                    <div style="flex: 2; min-width: 250px; position: relative;">
+                        <input type="text" id="searchInput" autocomplete="off" placeholder="ابحث بصيغة حرة: فئة, ملاحظة, مبلغ..." style="width: 100%; padding: 14px 14px 14px 40px; font-size: 16px; border-radius: 10px; border: 1px solid var(--gold2); background: rgba(0,0,0,0.3); color: #fff; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); transition: all 0.3s ease;">
+                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.6; font-size: 18px;">⌨️</span>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 150px; position: relative;">
+                        <select id="searchCategory" style="width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; font-size:15px; cursor:pointer; height: 100%; appearance: none;">
+                            ${categoryOptions}
+                        </select>
+                        <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none;">▼</span>
+                    </div>
+                    
+                    <button class="btn green" id="executeSearchBtn" style="padding: 14px 28px; border-radius: 10px; font-size: 16px; font-weight: bold; height: 100%; display:flex; align-items:center; gap:8px; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">
+                        <span style="font-size: 18px;">🎯</span> استعلام
+                    </button>
+                </div>
+                <div style="font-size: 13px; color: var(--gold3); padding-right: 5px; display:flex; align-items:center; gap:6px;">
+                    <span>💡</span> اكتب أي كلمة أو مبلغ لتصفية جميع السجلات آلياً.
+                </div>
             </div>
-            <div id="searchResultsContainer" style="max-height: 60vh; overflow-y: auto; padding: 4px;">
-                <p style="text-align:center; color: #444; font-weight: bold; margin-top: 20px;">🔎 اكتب أي كلمة أو مبلغ لتصفية جميع السجلات آلياً.</p>
+
+            <div id="searchResultsContainer" style="max-height: 55vh; overflow-y: auto; padding: 10px; border-radius: 10px; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.03);">
+                <div style="text-align:center; padding: 40px 20px;">
+                    <span style="font-size: 48px; opacity: 0.5; margin-bottom: 15px; display: block;">📂</span>
+                    <h4 style="color: #fff; margin:0 0 8px 0;">السجلات جاهزة للبحث</h4>
+                    <p style="color: var(--muted); margin:0;">استخدم شريط البحث أعلاه للعثور على العمليات المطلوبة</p>
+                </div>
             </div>
         </div>
     `;
             document.body.appendChild(overlay);
 
-            $('executeSearchBtn').onclick = executeSearch;
-            $('searchInput').oninput = executeSearch; // Live search
-            $('searchCategory').onchange = executeSearch;
-            $('searchInput').onkeydown = (e) => {
+            document.getElementById('executeSearchBtn').onclick = executeSearch;
+            document.getElementById('searchInput').oninput = executeSearch; // Live search
+            document.getElementById('searchCategory').onchange = executeSearch;
+            document.getElementById('searchInput').onkeydown = (e) => {
                 if (e.key === 'Enter') executeSearch();
             };
-            $('searchInput').focus();
+            document.getElementById('searchInput').focus();
         }
 
         function executeSearch() {
-            const searchTerm = $('searchInput').value.trim().toLowerCase();
-            const selectedCategory = $('searchCategory').value.trim();
+            const searchInput = document.getElementById('searchInput');
+            const searchCategory = document.getElementById('searchCategory');
+            const resultsContainer = document.getElementById('searchResultsContainer');
 
-            // Allow search without term if category is selected
+            if (!searchInput || !searchCategory || !resultsContainer) return;
+
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            const selectedCategory = searchCategory.value.trim();
+
             if (!searchTerm && !selectedCategory) {
-                alert('الرجاء إدخال كلمة للبحث أو اختيار فئة.');
+                resultsContainer.innerHTML = `<div style="text-align:center; padding: 40px 20px;">
+                    <span style="font-size: 48px; opacity: 0.5; margin-bottom: 15px; display: block;">📂</span>
+                    <h4 style="color: #fff; margin:0 0 8px 0;">السجلات جاهزة للبحث</h4>
+                    <p style="color: var(--muted); margin:0;">استخدم شريط البحث أعلاه للعثور على العمليات المطلوبة</p>
+                </div>`;
                 return;
             }
 
             const results = [];
-            const keys = Object.keys(localStorage).filter(k => k.startsWith('acc_') && !['acc_lock_pass', 'acc_app_theme', 'acc_dark_mode', 'acc_budgets'].includes(k));
+            // استخراج المفاتيح التي تحتوي على تواريخ العمليات فقط
+            const keys = Object.keys(localStorage).filter(k => /^acc_\d{4}-\d{2}-\d{2}$/.test(k));
 
             keys.forEach(key => {
                 const date = key.replace('acc_', '');
                 try {
                     const data = JSON.parse(localStorage.getItem(key));
-                    const dayRecords = Array.isArray(data) ? data : data.records || [];
+                    const dayRecords = Array.isArray(data) ? data : (data.records || []);
                     dayRecords.forEach(op => {
                         let match = true;
 
-                        // Filter by category if selected
                         if (selectedCategory && op.category !== selectedCategory) {
                             match = false;
                         }
 
-                        // Filter by search term if provided
-                        if (searchTerm) {
-                            const termMatch = op.category.toLowerCase().includes(searchTerm) ||
-                                op.notes.toLowerCase().includes(searchTerm) ||
-                                (op.top && op.top.toString().includes(searchTerm)) ||
-                                (op.bottom && op.bottom.toString().includes(searchTerm));
+                        if (searchTerm && match) {
+                            const c = (op.category || '').toLowerCase();
+                            const n = (op.notes || '').toLowerCase();
+                            const t = (op.top || '').toString();
+                            const b = (op.bottom || '').toString();
+                            const time = (op.timestamp || '').toLowerCase();
+                            const u = (op.user || '').toLowerCase();
+
+                            const termMatch = c.includes(searchTerm) || n.includes(searchTerm) || t.includes(searchTerm) || b.includes(searchTerm) || time.includes(searchTerm) || u.includes(searchTerm);
                             if (!termMatch) match = false;
                         }
 
@@ -10658,31 +10607,77 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                             results.push({ date, op });
                         }
                     });
-                } catch (e) { /* Ignore parsing errors */ }
+                } catch (e) { /* Ignore errors */ }
+            });
+
+            // ترتيب النتائج تنازلياً حسب التاريخ والوقت
+            results.sort((a, b) => {
+                const dateTimeA = new Date(`${a.date}T${a.op.timestamp || '00:00'}`);
+                const dateTimeB = new Date(`${b.date}T${b.op.timestamp || '00:00'}`);
+                return dateTimeB - dateTimeA;
             });
 
             displaySearchResults(results);
         }
 
         function displaySearchResults(results) {
-            const container = $('searchResultsContainer');
+            const container = document.getElementById('searchResultsContainer');
+            if (!container) return;
+
             if (results.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:var(--muted);">لم يتم العثور على نتائج.</p>`;
+                container.innerHTML = `<div style="text-align:center; padding: 30px;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
+                    <h3 style="color:var(--danger); margin:0;">لم يتم العثور على أي نتائج!</h3>
+                    <p style="color:var(--muted); font-size: 14px;">حاول كتابة مبلغ محدد أوملاحظة أو اسم فئة.</p>
+                </div>`;
                 return;
             }
 
-            container.innerHTML = results.map(result => `
-        <div class="card" style="margin-bottom: 8px; padding: 12px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <p style="margin:0; font-weight:bold;">${escapeHtml(result.op.category)} - <span style="color:var(--gold2);">${formatNum(result.op.top || 0)} / ${formatNum(result.op.bottom || 0)}</span></p>
-                <small style="color:var(--muted);">${result.date} | ${escapeHtml(result.op.notes || '...')}</small>
-            </div>
-            <button class="btn ghost" style="padding:6px 10px;" onclick="goToDate('${result.date}')">الانتقال لهذا اليوم</button>
-        </div>
-    `).join('');
+            // تجميع النتائج حسب اليوم
+            const grouped = {};
+            results.forEach(r => {
+                if (!grouped[r.date]) grouped[r.date] = [];
+                grouped[r.date].push(r.op);
+            });
+
+            let html = `<div style="margin-bottom: 15px; background: rgba(212, 175, 55, 0.1); padding: 10px; border-radius: 8px; color: var(--gold2); font-weight: bold; text-align: center; border: 1px solid rgba(212, 175, 55, 0.3);">
+                ✅ تم العثور على ${results.length} عملية مطابقة
+            </div>`;
+
+            Object.keys(grouped).forEach(date => {
+                html += `
+                <div style="background: linear-gradient(90deg, rgba(20,30,50,0.8), rgba(10,20,30,0.9)); padding: 8px 12px; border-radius: 6px; margin-top: 15px; font-weight: bold; color: #fff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1); transition: all 0.2s;" onclick="goToDate('${date}')" onmouseover="this.style.background='var(--gold4)'" onmouseout="this.style.background='linear-gradient(90deg, rgba(20,30,50,0.8), rgba(10,20,30,0.9))'">
+                    <span style="font-size: 15px;">📅 ${date}</span>
+                    <span style="font-size: 12px; color: var(--gold2); background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">الانتقال لليوم ➡️</span>
+                </div>`;
+
+                grouped[date].forEach(op => {
+                    let amountHtml = '';
+                    if (op.top > 0) amountHtml += `<div style="color:var(--success); font-weight:bold; font-size: 14px;">⬆️ ${formatNum(op.top)}</div>`;
+                    if (op.bottom > 0) amountHtml += `<div style="color:var(--danger); font-weight:bold; font-size: 14px;">⬇️ ${formatNum(op.bottom)}</div>`;
+
+                    html += `
+                        <div class="card" onclick="goToDate('${date}', '${op.id}')" style="margin-top: 8px; margin-bottom: 8px; padding: 12px 16px; display:flex; justify-content:space-between; align-items:center; background: var(--glass); cursor: pointer; border-right: 3px solid ${op.top > 0 ? 'var(--success)' : 'var(--danger)'}; transition: transform 0.2s, background 0.2s;" onmouseover="this.style.transform='translateX(-5px)'; this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.transform='translateX(0)'; this.style.background='var(--glass)'">
+                            <div style="flex: 1;">
+                                <p style="margin: 0 0 4px 0; font-weight: bold; font-size: 15px; color: #fff;">${escapeHtml(op.category || 'غير محدد')}</p>
+                                <div style="display: flex; gap: 10px; font-size: 12px;">
+                                    <span style="color: #0ea5e9;">🕒 ${op.timestamp || ''}</span>
+                                    <span style="color: var(--muted);">📝 ${escapeHtml(op.notes || 'بدون ملاحظات')}</span>
+                                    <span style="color: var(--gold2);">👤 ${escapeHtml(op.user || 'غير محدد')}</span>
+                                </div>
+                            </div>
+                            <div style="text-align: left; min-width: 80px;">
+                                ${amountHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            container.innerHTML = html;
         }
 
-        function goToDate(dateStr) {
+        function goToDate(dateStr, highlightId = null) {
             dateInput.value = dateStr;
             loadForDate();
             const searchOverlay = document.getElementById('searchOverlay');
@@ -10690,6 +10685,21 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                 document.body.removeChild(searchOverlay);
             }
             flashStage();
+
+            if (highlightId) {
+                setTimeout(() => {
+                    const row = document.getElementById('row-' + highlightId);
+                    if (row) {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const originalBg = row.style.backgroundColor;
+                        row.style.transition = 'background-color 0.5s';
+                        row.style.backgroundColor = 'rgba(212, 175, 55, 0.4)'; // Gold highlight
+                        setTimeout(() => {
+                            row.style.backgroundColor = originalBg;
+                        }, 3000);
+                    }
+                }, 300);
+            }
         }
 
         /* ---------- Quick Date Navigation ---------- */
@@ -11155,6 +11165,30 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
             renderUsersList();
             showToast('🗑️ تم نقل المستخدم لسلة المحذوفات', 'info');
         }
+
+        window.editUser = function (id) {
+            let userIndex = window.currentUserList.findIndex(u => u.id === id);
+            if (userIndex === -1 && typeof id === 'number' && window.currentUserList[id]) userIndex = id;
+            if (userIndex === -1) { showToast('❌ المستخدم غير موجود', 'error'); return; }
+
+            const user = window.currentUserList[userIndex];
+
+            const newName = prompt(`تعديل اسم المستخدم (${user.name}):`, user.name);
+            if (newName === null) return; // Cancelled
+            if (newName.trim() === '') { showToast('❌ لا يمكن ترك الاسم فارغاً', 'error'); return; }
+
+            const newPass = prompt(`تعديل كلمة المرور للمستخدم (${user.name}):`, user.pass);
+            if (newPass === null) return; // Cancelled
+            if (newPass.trim() === '') { showToast('❌ لا يمكن ترك كلمة المرور فارغة', 'error'); return; }
+
+            window.currentUserList[userIndex].name = newName.trim();
+            window.currentUserList[userIndex].pass = newPass.trim();
+
+            localStorage.setItem('acc_users', JSON.stringify(window.currentUserList));
+            renderUsersList();
+            showToast('✅ تم تعديل بيانات المستخدم بنجاح', 'success');
+        }
+
         window.renderUsersList = function () {
             const container = document.getElementById('usersListContainer');
             if (!container) return;
@@ -11182,14 +11216,17 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
             <div style="display:flex; align-items:center; gap:10px;">
                 <span style="font-size:20px;">${u.role === 'admin' ? '👮‍♂️' : '👤'}</span>
                 <div>
-                    <div style="font-weight:bold;">${u.name}</div>
+                    <div style="font-weight:bold;">${escapeHtml(u.name)}</div>
                     <div style="font-size:10px; color:var(--muted);">${u.role === 'admin' ? 'المدير العام' : 'موظف'}</div>
                 </div>
             </div>
-            ${u.role === 'admin' ?
+            <div style="display: flex; gap: 8px;">
+                <button class="btn blue ghost small" onclick="editUser(${u.id})">✏️ تعديل</button>
+                ${u.role === 'admin' ?
                     '<span style="font-size:18px; color:var(--gold2);" title="لا يمكن حذفه">🔒</span>' :
                     `<button class="btn red ghost small" onclick="removeUser(${u.id})">🗑️ حذف</button>`
                 }
+            </div>
         </div>
     `).join('');
         }
@@ -12701,7 +12738,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
 
                 if (typeof db !== 'undefined' && firebaseConfig && firebaseConfig.apiKey !== "YOUR_API_KEY_HIDDEN") {
                     if (section) section.style.display = 'flex';
-                    
+
                     if (!navigator.onLine) {
                         if (countBadge) countBadge.innerText = "أنت حالياً أوفلاين (غير متصل بالنت)";
                         return;
@@ -12711,7 +12748,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                         let totalCount = snap.size;
                         let activeCount = 0;
                         const now = new Date();
-                        
+
                         snap.forEach(doc => {
                             const data = doc.data();
                             if (data.lastSeen) {
@@ -13107,6 +13144,130 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
     // Apply layout initially
     applyLayoutMode();
     document.addEventListener('DOMContentLoaded', applyLayoutMode);
+
+    // External Balances Logic
+    function renderExternalBalances() {
+        const extToMe = localStorage.getItem('acc_ext_tome') || 0;
+        const extByMe = localStorage.getItem('acc_ext_byme') || 0;
+        if (document.getElementById('extOwedToMe')) document.getElementById('extOwedToMe').textContent = formatNum(extToMe);
+        if (document.getElementById('extOwedByMe')) document.getElementById('extOwedByMe').textContent = formatNum(extByMe);
+    }
+
+    function showExternalBalancesModal() {
+        const extToMe = localStorage.getItem('acc_ext_tome') || 0;
+        const extByMe = localStorage.getItem('acc_ext_byme') || 0;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal-box" style="max-width: 450px; background: linear-gradient(145deg, #1e3a8a, #0f172a); border: 2px solid #3b82f6; box-shadow: 0 10px 40px rgba(0,0,0,0.6); color: #fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                    <h3 style="margin:0; font-size: 18px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px;">💳</span> إدارة الحسابات الخارجية</h3>
+                    <button class="btn ghost" style="color:#ef4444; background: rgba(239, 68, 68, 0.1); padding:8px; border-radius:50%;" onclick="document.body.removeChild(this.closest('.modal-overlay'))"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXgiPjxsaW5lIHgxPSIxOCIgeDI9IjYiIHkxPSI2IiB5Mj0iMTgiLz48bGluZSB4MT0iNiIgeDI9IjE4IiB5MT0iNiIgeTI9IjE4Ii8+PC9zdmc+" class="icon" style="margin:0;"></button>
+                </div>
+
+                <div style="margin-bottom: 20px; text-align: right;">
+                    <p style="font-size:13px; color:#93c5fd; margin-bottom:15px; line-height:1.6;">هذا القسم يتيح لك متابعة المبالغ الإجمالية التي <b>لك</b> أو <b>عليك</b> من تطبيقات أو جهات أخرى، كملخص عام لحسابك الخارجي.</p>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom: 15px;">
+                        <div style="flex:1;">
+                            <label style="font-size:12px; color:#4ade80; font-weight:bold;">المبلغ (له) لك ⬆️</label>
+                            <input type="number" id="manualToMeInput" value="${extToMe}" style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #4ade80; background: rgba(0,0,0,0.3); color: #fff; font-size:16px; margin-top:5px;">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:12px; color:#f87171; font-weight:bold;">المبلغ (عليه) دين ⬇️</label>
+                            <input type="number" id="manualByMeInput" value="${extByMe}" style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #f87171; background: rgba(0,0,0,0.3); color: #fff; font-size:16px; margin-top:5px;">
+                        </div>
+                    </div>
+                    <button class="btn green" onclick="saveManualExternalBalances()" style="width:100%; padding: 12px; font-weight:bold; font-size:15px;">💾 حفظ الأرقام يدوياً</button>
+                </div>
+
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; text-align: center; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-top: 10px;">
+                    <h4 style="margin: 0 0 10px 0; color: #93c5fd;">📊 أو تحديث عبر ملف إكسل </h4>
+                    <p style="font-size: 11px; color: var(--muted); margin-bottom: 15px; line-height: 1.5;">سنقوم بجمع القيم. يجب أن يحتوي الملف على أعمدة بها كلمة <b>"له"</b> و <b>"عليه"</b>، أو سيتم افتراض أول وثاني عمود بعد الاسم.</p>
+                    <input type="file" id="extExcelUpload" accept=".xlsx, .xls" style="display:none;" onchange="handleExternalExcelUpload(event)">
+                    <button class="btn blue" onclick="document.getElementById('extExcelUpload').click()" style="width: 100%; padding: 12px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:bold;">
+                        <span style="font-size: 18px;">📥</span> اختر ملف إكسل للتحديث الآلي
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    function saveManualExternalBalances() {
+        const toMe = document.getElementById('manualToMeInput').value || 0;
+        const byMe = document.getElementById('manualByMeInput').value || 0;
+        localStorage.setItem('acc_ext_tome', parseFloat(toMe));
+        localStorage.setItem('acc_ext_byme', parseFloat(byMe));
+        renderExternalBalances();
+        document.querySelector('.modal-overlay').remove();
+        if (typeof showToast === 'function') showToast('✅ تم تحديث الأرصدة يدوياً', 'success');
+        if (typeof beep === 'function') beep(1000, 0.04, 0.05);
+    }
+
+    function handleExternalExcelUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                if (typeof XLSX === 'undefined') {
+                    alert('مكتبة الإكسل غير محملة. تأكد من اتصالك بالإنترنت.');
+                    return;
+                }
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                let toMe = 0, byMe = 0;
+                if (rows.length > 0) {
+                    const header = rows[0].map(h => (h || '').toString().trim().toLowerCase());
+                    let cToMe = header.findIndex(h => h.includes('له') || h.includes('لصالحنا') || h.includes('credit') || h.includes('مدين'));
+                    let cByMe = header.findIndex(h => h.includes('عليه') || h.includes('علينا') || h.includes('debit') || h.includes('دائن'));
+
+                    // Default fallback: assume names in col 0, 'toMe' in col 1, 'byMe' in col 2
+                    if (cToMe === -1) cToMe = 1;
+                    if (cByMe === -1) cByMe = 2;
+
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row && row.length) {
+                            const rowText = row.join(' ').toLowerCase();
+                            if (rowText.includes('إجمالي') || rowText.includes('اجمالي') || rowText.includes('total')) {
+                                continue; // Skip totals row so we don't double count
+                            }
+                            toMe += parseFloat(row[cToMe]) || 0;
+                            byMe += parseFloat(row[cByMe]) || 0;
+                        }
+                    }
+                }
+
+                if (confirm(`تم التعرف على القيم التالية من ملف الإكسل:\n\nإجمالي "له": ${formatNum(toMe)}\nإجمالي "عليه": ${formatNum(byMe)}\n\nهل تريد اعتماد وتحديث الأرصدة الحالية في التطبيق؟`)) {
+                    localStorage.setItem('acc_ext_tome', toMe);
+                    localStorage.setItem('acc_ext_byme', byMe);
+                    renderExternalBalances();
+
+                    const openModal = document.querySelector('.modal-overlay');
+                    if (openModal) openModal.remove();
+
+                    if (typeof showToast === 'function') showToast('✅ تم جلب الأرصدة من إكسل بنجاح', 'success');
+                    if (typeof beep === 'function') beep(1200, 0.05, 0.06);
+                }
+            } catch (error) {
+                if (typeof showToast === 'function') showToast('❌ خطأ في قراءة ملف الإكسل، تأكد من الصيغة', 'error');
+                console.error(error);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    document.addEventListener('DOMContentLoaded', renderExternalBalances);
+    setTimeout(renderExternalBalances, 500); // safety fallback
+
 </script>
 </body>
 
