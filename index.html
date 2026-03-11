@@ -82,7 +82,7 @@
         }
 
         // زر تثبيت التطبيق
-        let deferredPrompt;
+        letdeferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -312,31 +312,67 @@
         }
 
         .title-container {
-            margin: 0;
-            font-size: 20px;
-            text-align: right;
-            padding: 10px 16px;
-            border-radius: 12px;
-            background: linear-gradient(145deg, #333, #111);
-            color: #fff;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-            border: 2px solid transparent;
-            box-shadow: 0 0 5px rgba(14, 165, 233, 0.6), 0 0 10px rgba(56, 189, 248, 0.5), 0 0 15px rgba(2, 132, 199, 0.4), inset 0 0 4px rgba(14, 165, 233, 0.5);
-            animation: fire-flicker 3s infinite alternate, float 6s ease-in-out infinite;
+            margin: -50px auto 25px auto;
+            font-size: 30px;
+            font-weight: 900;
+            text-align: center;
+            padding: 18px 50px;
+            border-radius: 30px;
+            background: linear-gradient(45deg, #0f172a, #1e1b4b, #0f172a, #312e81);
+            background-size: 300% 300%;
+            color: #fbbf24;
+            text-shadow: 0 4px 25px rgba(251, 191, 36, 0.7);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 0 15px 55px rgba(15, 23, 42, 0.95), 0 0 30px rgba(217, 119, 6, 0.5), inset 0 3px 25px rgba(252, 211, 77, 0.3);
+            animation: titleGradient 8s ease infinite, fire-flicker 4s infinite alternate, float 6s ease-in-out infinite;
             white-space: nowrap;
             flex-shrink: 0;
             position: relative;
+            z-index: 20;
+            letter-spacing: 2px;
+        }
+
+        @keyframes titleGradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .title-container::before {
             content: '';
             position: absolute;
             top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 30px;
+            padding: 3px;
+            background: linear-gradient(135deg, #fbbf24, #d97706, #fbbf24);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+        }
+
+        .title-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
             left: -100%;
-            width: 100%;
+            width: 50%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shimmer 3s infinite;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 4s infinite;
+            border-radius: 30px;
         }
 
         .header-controls {
@@ -2429,8 +2465,36 @@
     <div class="stage">
         <div class="stage-inner">
             <div class="container" id="app">
+
+                <!-- System Tools (Moved to Top) -->
+                <div class="system-tools top-tools-bar"
+                    style="display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; margin-bottom: 20px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+
+                    <button class="btn" id="searchBtn" style="font-size: 16px; padding: 8px 12px;"
+                        title="البحث (Ctrl+F)">🔍</button>
+                    <!-- Calculator Button Moved to Floating Action Button -->
+                    <button class="btn" id="backupBtn" style="font-size: 16px; padding: 8px 12px;"
+                        title="النسخ الاحتياطي">💾</button>
+                    <button class="btn" id="screenshotBtn" style="font-size: 16px; padding: 8px 12px;"
+                        title="لقطة شاشة">📸</button>
+                    <button class="btn" id="waShareBtn" style="font-size: 16px; padding: 8px 12px; color: #22c55e;"
+                        title="مشاركة التقرير عبر واتساب" onclick="shareToWhatsApp()">💬 واتساب</button>
+                    <button class="btn" id="qrcodeBtn" style="font-size: 16px; padding: 8px 12px; color: #0ea5e9;"
+                        title="توليد وتصدير QR للتقرير" onclick="generateQRCodeModal()">📱 تصدير</button>
+                    <button class="btn" id="printBtn" style="font-size: 16px; padding: 8px 12px;"
+                        title="طباعة تقرير اليوم" onclick="printDailyReport()">🖨️</button>
+                    <button class="btn" id="layoutToggleBtn" style="font-size: 16px; padding: 8px 12px;"
+                        title="تغيير العرض (موبايل/كمبيوتر)" onclick="toggleLayoutMode()">📱</button>
+                    <button class="btn glowing" id="settingsBtn" style="font-size: 16px; padding: 8px 12px;"
+                        title="الإعدادات">⚙️</button>
+                    <button class="btn" id="installPwaBtn"
+                        style="display:none; font-size: 16px; padding: 8px 12px; background: linear-gradient(135deg, #d97706, #f59e0b); animation: pulse 2s infinite;"
+                        onclick="installPWA()" title="تثبيت التطبيق على الشاشة الرئيسية">📱 تثبيت</button>
+
+                </div>
+
                 <header>
-                    <h1 class="title-container" id="appTitle">تطبيق المحاسبة اليومي</h1>
+                    <h1 class="title-container" id="appTitle">تطبيق المحاسبة اليومي — عمرو</h1>
                     <div class="header-controls">
                         <!-- Dynamic Inventories Button -->
                         <div style="display:flex; gap:8px;">
@@ -2440,37 +2504,15 @@
 
                             <button class="btn"
                                 style="background: linear-gradient(135deg, #1e3a8a, #312e81); color: #93c5fd; padding:8px 12px; font-size:16px; border:1px solid #60a5fa; display:flex; align-items:center; gap:5px; flex-shrink:0; box-shadow: 0 4px 10px rgba(30, 58, 138, 0.4);"
-                                onclick="showExternalBalancesModal()" title="حسابات خارجية (له وعليه)">💳 حساب خارجي</button>
+                                onclick="showExternalBalancesModal()" title="حسابات خارجية (له وعليه)">💳 حساب
+                                خارجي</button>
+
+                            <button class="btn"
+                                style="background: linear-gradient(135deg, #1e293b, #334155); color: #cbd5e1; padding:8px 12px; font-size:16px; border:1px solid #64748b; display:flex; align-items:center; gap:5px; flex-shrink:0; box-shadow: 0 4px 10px rgba(30, 41, 59, 0.4);"
+                                onclick="showAppNotesModal()" title="الملاحظات">📝 <span
+                                    id="headerNotesBoxNameBtn">ملاحظات</span></button>
                         </div>
-
-                        <!-- System Tools (Unified Left Group) -->
-                        <div class="system-tools"
-                            style="display: flex; gap: 8px; align-items: center; margin-right: auto;">
-
-                            <button class="btn" id="searchBtn" style="font-size: 16px; padding: 8px 12px;"
-                                title="البحث (Ctrl+F)">🔍</button>
-                            <!-- Calculator Button Moved to Floating Action Button -->
-                            <button class="btn" id="backupBtn" style="font-size: 16px; padding: 8px 12px;"
-                                title="النسخ الاحتياطي">💾</button>
-                            <button class="btn" id="screenshotBtn" style="font-size: 16px; padding: 8px 12px;"
-                                title="لقطة شاشة">📸</button>
-                            <button class="btn" id="waShareBtn"
-                                style="font-size: 16px; padding: 8px 12px; color: #22c55e;"
-                                title="مشاركة التقرير عبر واتساب" onclick="shareToWhatsApp()">💬 واتساب</button>
-                            <button class="btn" id="tgShareBtn"
-                                style="font-size: 16px; padding: 8px 12px; color: #3b82f6;"
-                                title="مشاركة التقرير عبر تلجرام" onclick="shareToTelegram()">✈️ تلجرام</button>
-                            <button class="btn" id="qrcodeBtn"
-                                style="font-size: 16px; padding: 8px 12px; color: #0ea5e9;"
-                                title="توليد وتصدير QR للتقرير" onclick="generateQRCodeModal()">📱 تصدير</button>
-                            <button class="btn" id="printBtn" style="font-size: 16px; padding: 8px 12px;"
-                                title="طباعة تقرير اليوم" onclick="printDailyReport()">🖨️</button>
-                            <button class="btn" id="layoutToggleBtn" style="font-size: 16px; padding: 8px 12px;"
-                                title="تغيير العرض (موبايل/كمبيوتر)" onclick="toggleLayoutMode()">📱</button>
-                            <button class="btn glowing" id="settingsBtn" style="font-size: 16px; padding: 8px 12px;"
-                                title="الإعدادات">⚙️</button>
-
-                        </div>
+                        <!-- Old tools removed from here -->
 
                         <input type="file" id="restoreFile" accept=".json" style="display:none">
                     </div>
@@ -2482,55 +2524,60 @@
                 <div class="metrics-dashboard"
                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px;">
                     <div class="metric-card" onclick="showSalesDetails()"
-                        style="background: linear-gradient(135deg, #064e3b, #065f46); border: 1px solid #34d399; border-radius: 12px; padding: 16px; text-align: center; animation: breathe 4s ease-in-out infinite; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(6, 78, 59, 0.5); cursor: pointer;">
-                        <div style="font-size: 24px; font-weight: bold; color: #4ade80; margin-bottom: 4px;">💰</div>
-                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">إجمالي المبيعات</div>
+                        style="background: linear-gradient(135deg, #d97706, #f59e0b); border: 1px solid #fcd34d; border-radius: 12px; padding: 16px; text-align: center; animation: breathe 4s ease-in-out infinite; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(217, 119, 6, 0.5); cursor: pointer;">
+                        <div style="font-size: 24px; font-weight: bold; color: #fef3c7; margin-bottom: 4px;">💰</div>
+                        <div style="font-size: 12px; color: #fef3c7; margin-bottom: 8px; font-weight: bold;">إجمالي
+                            المبيعات</div>
                         <div style="font-size: 18px; font-weight: bold; color: #ffffff;" id="headerSalesTotal">0
                         </div>
                     </div>
                     <div class="metric-card" onclick="showNetDetails()"
-                        style="background: linear-gradient(135deg, #7f1d1d, #991b1b); border: 1px solid #f87171; border-radius: 12px; padding: 16px; text-align: center; animation: breathe 4s ease-in-out infinite 1s; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(127, 29, 29, 0.5); cursor: pointer;">
-                        <div style="font-size: 24px; font-weight: bold; color: #fca5a5; margin-bottom: 4px;">📈</div>
-                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">صافي اليوم</div>
+                        style="background: linear-gradient(135deg, #047857, #10b981); border: 1px solid #6ee7b7; border-radius: 12px; padding: 16px; text-align: center; animation: breathe 4s ease-in-out infinite 1s; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(4, 120, 87, 0.5); cursor: pointer;">
+                        <div style="font-size: 24px; font-weight: bold; color: #a7f3d0; margin-bottom: 4px;">📈</div>
+                        <div style="font-size: 12px; color: #d1fae5; margin-bottom: 8px; font-weight: bold;">صافي اليوم
+                        </div>
                         <div style="font-size: 18px; font-weight: bold; color: #ffffff;" id="headerDiffTotal">0
                         </div>
                     </div>
                     <div class="metric-card" onclick="showOperationsDetails()"
-                        style="background: linear-gradient(135deg, #581c87, #6b21a8); border: 1px solid #c084fc; border-radius: 12px; padding: 16px; text-align: center; animation: breathe 4s ease-in-out infinite 2s; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(88, 28, 135, 0.5); cursor: pointer;">
-                        <div style="font-size: 24px; font-weight: bold; color: #d8b4fe; margin-bottom: 4px;">📊</div>
-                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">عدد العمليات</div>
+                        style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); border: 1px solid #93c5fd; border-radius: 12px; padding: 16px; text-align: center; animation: breathe 4s ease-in-out infinite 2s; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(29, 78, 216, 0.5); cursor: pointer;">
+                        <div style="font-size: 24px; font-weight: bold; color: #dbeafe; margin-bottom: 4px;">📊</div>
+                        <div style="font-size: 12px; color: #eff6ff; margin-bottom: 8px; font-weight: bold;">عدد
+                            العمليات</div>
                         <div style="font-size: 18px; font-weight: bold; color: #ffffff;" id="headerOperationsCount">0
                         </div>
                     </div>
                     <!-- New Cash Card -->
                     <div class="metric-card" onclick="showCashDetails()"
-                        style="background: linear-gradient(135deg, #14532d, #166534); border: 1px solid #4ade80; border-radius: 12px; padding: 16px; text-align: center; transition: all .3s ease; box-shadow: 0 4px 15px rgba(20, 83, 45, 0.5); cursor: pointer;">
-                        <div style="font-size: 24px; font-weight: bold; color: #86efac; margin-bottom: 4px;">💵</div>
-                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">الكاش</div>
+                        style="background: linear-gradient(135deg, #be123c, #f43f5e); border: 1px solid #fda4af; border-radius: 12px; padding: 16px; text-align: center; transition: all .3s ease; box-shadow: 0 4px 15px rgba(190, 18, 60, 0.5); cursor: pointer;">
+                        <div style="font-size: 24px; font-weight: bold; color: #ffe4e6; margin-bottom: 4px;">💵</div>
+                        <div style="font-size: 12px; color: #fff1f2; margin-bottom: 8px; font-weight: bold;">الكاش</div>
                         <div style="font-size: 18px; font-weight: bold; color: #ffffff;" id="headerCashTotal">0</div>
                     </div>
                     <!-- New InstaPay Card -->
                     <div class="metric-card" onclick="showInstaPayDetails()"
-                        style="background: linear-gradient(135deg, #4c1d95, #5b21b6); border: 1px solid #a78bfa; border-radius: 12px; padding: 16px; text-align: center; transition: all .3s ease; box-shadow: 0 4px 15px rgba(76, 29, 149, 0.5); cursor: pointer;">
-                        <div style="font-size: 24px; font-weight: bold; color: #c4b5fd; margin-bottom: 4px;">🟣</div>
-                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">انستا باي</div>
+                        style="background: linear-gradient(135deg, #6d28d9, #8b5cf6); border: 1px solid #c4b5fd; border-radius: 12px; padding: 16px; text-align: center; transition: all .3s ease; box-shadow: 0 4px 15px rgba(109, 40, 217, 0.5); cursor: pointer;">
+                        <div style="font-size: 24px; font-weight: bold; color: #ede9fe; margin-bottom: 4px;">🟣</div>
+                        <div style="font-size: 12px; color: #f5f3ff; margin-bottom: 8px; font-weight: bold;">انستا باي
+                        </div>
                         <div style="font-size: 18px; font-weight: bold; color: #ffffff;" id="headerInstaPayTotal">0
                         </div>
                     </div>
                     <!-- External Balances Card -->
                     <div class="metric-card" onclick="showExternalBalancesModal()"
-                        style="background: linear-gradient(135deg, #1e3a8a, #312e81); border: 1px solid #60a5fa; border-radius: 12px; padding: 16px; text-align: center; transition: all .3s ease; box-shadow: 0 4px 15px rgba(30, 58, 138, 0.5); cursor: pointer; position: relative;">
-                        <div style="font-size: 24px; font-weight: bold; color: #93c5fd; margin-bottom: 4px;">💳</div>
-                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 8px;">حسابات خارجية (له وعليه)</div>
+                        style="background: linear-gradient(135deg, #0f766e, #14b8a6); border: 1px solid #5eead4; border-radius: 12px; padding: 16px; text-align: center; transition: all .3s ease; box-shadow: 0 4px 15px rgba(15, 118, 110, 0.5); cursor: pointer; position: relative;">
+                        <div style="font-size: 24px; font-weight: bold; color: #ccfbf1; margin-bottom: 4px;">💳</div>
+                        <div style="font-size: 12px; color: #f0fdfa; margin-bottom: 8px; font-weight: bold;">حسابات
+                            خارجية (له وعليه)</div>
                         <div
                             style="display: flex; justify-content: space-around; font-size: 14px; font-weight: bold; width: 100%;">
-                            <div style="color:#4ade80;" title="له"><span
-                                    style="font-size:10px; color:#a7f3d0; margin-bottom:2px; display:block;">له
-                                    (ك)</span><span id="extOwedToMe">0</span></div>
-                            <div style="width: 1px; background: rgba(255,255,255,0.2);"></div>
-                            <div style="color:#f87171;" title="عليه"><span
-                                    style="font-size:10px; color:#fecaca; margin-bottom:2px; display:block;">عليه
-                                    (دين)</span><span id="extOwedByMe">0</span></div>
+                            <div style="color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);" title="له"><span
+                                    style="font-size:10px; color:#ccfbf1; margin-bottom:2px; display:block;">له
+                                    (ك) ⬆️</span><span id="extOwedToMe">0</span></div>
+                            <div style="width: 1px; background: rgba(255,255,255,0.4);"></div>
+                            <div style="color:#ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);" title="عليه"><span
+                                    style="font-size:10px; color:#fecdd3; margin-bottom:2px; display:block;">عليه
+                                    (دين) ⬇️</span><span id="extOwedByMe">0</span></div>
                         </div>
                     </div>
                 </div>
@@ -2765,22 +2812,24 @@
                                     <h3 style="margin:0;">سجل العمليات اليوم</h3>
                                 </div>
                                 <div style="display:flex; gap:6px;">
-                                    <button class="btn ghost" id="sortTableBtn"
-                                        style="font-size:12px; padding:6px 10px;">
-                                        <span style="margin-left: 4px;">🔄</span>ترتيب
+                                    <button class="btn" id="sortTableBtn"
+                                        style="font-size:13px; font-weight:bold; padding:8px 14px; background: linear-gradient(135deg, #1d4ed8, #3b82f6); border: 1px solid #93c5fd; color: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(59,130,246,0.3); transition: all 0.3s;">
+                                        🔄 ترتيب الجدول
                                     </button>
-                                    <button class="btn ghost" id="exportTableBtn"
-                                        style="font-size:12px; padding:6px 10px;">
-                                        <span style="margin-left: 4px;">📥</span>تصدير
+                                    <button class="btn" id="exportTableBtn"
+                                        style="font-size:13px; font-weight:bold; padding:8px 14px; background: linear-gradient(135deg, #047857, #10b981); border: 1px solid #6ee7b7; color: #fff; border-radius: 8px; box-shadow: 0 4px 10px rgba(16,185,129,0.3); transition: all 0.3s; margin-right: 5px;"
+                                        title="تصدير السجل إلى ملف إكسيل">
+                                        📥 تصدير إكسيل
                                     </button>
                                 </div>
                             </div>
 
                             <div style="margin-bottom: 12px;">
-                                <input type="text" id="smartTableSearch" autocomplete="off"
+                                <input type="search" id="smartTableSearch" autocomplete="new-password"
+                                    name="stop_autofill_search" data-lpignore="true" spellcheck="false"
                                     placeholder="🔍 بحث ذكي في الجدول لتصفية العمليات (مبلغ، كلمة، حرف، ملاحظة)..."
                                     style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.7); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); font-size: 15px; color: #1a1a1a;"
-                                    oninput="render()">
+                                    oninput="render()" onfocus="this.removeAttribute('readonly');" readonly>
                             </div>
                             <div style="overflow-x:auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
                                 <table id="aggTable" style="width: 100%;">
@@ -3047,9 +3096,9 @@
         }
 
         function updateHeaderName() {
-            const name = localStorage.getItem('acc_user_name');
+            const name = localStorage.getItem('acc_user_name') || 'عمرو';
             const titleEl = document.getElementById('appTitle');
-            if (name && titleEl) {
+            if (titleEl) {
                 titleEl.textContent = `تطبيق المحاسبة اليومي — ${name}`;
             }
         }
@@ -3383,16 +3432,16 @@
             document.body.classList.add(`theme-${savedTheme}`);
             if (localStorage.getItem('acc_dark_mode') === 'true') document.body.classList.add('dark');
 
-            // Activate all settings
-            localStorage.setItem('acc_app_theme', 'galaxy');
-            localStorage.setItem('acc_sounds_enabled', 'true');
-            localStorage.setItem('acc_dark_mode', 'true');
-            localStorage.setItem('ai_voice_feedback', 'true');
-            localStorage.setItem('ai_notifications', 'true');
-            localStorage.setItem('ai_auto_backup_interval', '6');
-            localStorage.setItem('ai_theme', 'professional');
-            localStorage.setItem('ai_detail_level', 'detailed');
-            localStorage.setItem('ai_language_style', 'formal');
+            // Activate default settings if not already set
+            if (!localStorage.getItem('acc_app_theme')) localStorage.setItem('acc_app_theme', 'galaxy');
+            if (localStorage.getItem('acc_sounds_enabled') === null) localStorage.setItem('acc_sounds_enabled', 'true');
+            if (localStorage.getItem('acc_dark_mode') === null) localStorage.setItem('acc_dark_mode', 'true');
+            if (!localStorage.getItem('ai_voice_feedback')) localStorage.setItem('ai_voice_feedback', 'true');
+            if (!localStorage.getItem('ai_notifications')) localStorage.setItem('ai_notifications', 'true');
+            if (!localStorage.getItem('ai_auto_backup_interval')) localStorage.setItem('ai_auto_backup_interval', '6');
+            if (!localStorage.getItem('ai_theme')) localStorage.setItem('ai_theme', 'professional');
+            if (!localStorage.getItem('ai_detail_level')) localStorage.setItem('ai_detail_level', 'detailed');
+            if (!localStorage.getItem('ai_language_style')) localStorage.setItem('ai_language_style', 'formal');
 
             // Activate security features
             if (!localStorage.getItem('acc_lock_pass')) {
@@ -4371,6 +4420,11 @@
                 } catch (e) { console.error("Auto-fix error", e); }
             }
             // --------------------------------------------------------------------------
+            
+            // Re-initialize Realtime Sync for the new date
+            if (typeof startRealtimeSync === 'function') {
+                startRealtimeSync();
+            }
 
             // Also update egg balance display for this date
             renderInventoriesHeader();
@@ -5337,13 +5391,24 @@
             render(); // Re-render to update chart colors
         }
         function changeTheme(themeName) {
-            document.body.className = `theme - ${themeName} ${document.body.classList.contains('dark') ? 'dark' : ''} `;
+            // Remove any existing theme- classes
+            document.body.classList.forEach(cls => {
+                if (cls.startsWith('theme-')) document.body.classList.remove(cls);
+            });
+            
+            // Add the new theme class
+            document.body.classList.add(`theme-${themeName}`);
+            
+            // Store the choice
             localStorage.setItem('acc_app_theme', themeName);
-            // Update active swatch indicator
+            
+            // Update active swatch indicator in settings if open
             document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-            const activeSwatch = document.querySelector(`.swatch[data - theme= "${themeName}"]`);
+            const activeSwatch = document.querySelector(`.swatch[data-theme="${themeName}"]`);
             if (activeSwatch) activeSwatch.classList.add('active');
-            render(); // Re-render charts with new theme colors
+            
+            if (typeof render === 'function') render(); // Re-render charts with new theme colors
+            beep(600, 0.02, 0.03);
         }
 
         /* ---------- Anomaly Detection ---------- */
@@ -5488,6 +5553,9 @@
             shareReport('telegram');
         }
 
+        function copyReportText() {
+            shareReport('copy');
+        }
 
         function shareReport(platform) {
             const date = dateInput.value || (new Date()).toISOString().slice(0, 10);
@@ -5542,6 +5610,24 @@
 
             message += `📦 الأرصدة 📦\n`;
             message += `${inventoriesText}\n`;
+
+            const extToMe = localStorage.getItem('acc_ext_tome') || 0;
+            const extByMe = localStorage.getItem('acc_ext_byme') || 0;
+            if (parseFloat(extToMe) > 0 || parseFloat(extByMe) > 0) {
+                message += `${separator}\n`;
+                message += `💳 حسابات خارجية 💳\n`;
+                if (parseFloat(extToMe) > 0) message += `   ⬆️ له (لنا): * ${formatNum(parseFloat(extToMe))} *\n`;
+                if (parseFloat(extByMe) > 0) message += `   ⬇️ عليه (دين): * ${formatNum(parseFloat(extByMe))} *\n`;
+            }
+
+            const appNotes = localStorage.getItem('acc_app_notes') || '';
+            const appNotesTitle = localStorage.getItem('acc_notes_box_name') || 'الملاحظات';
+            if (appNotes.trim() !== '') {
+                message += `${separator}\n`;
+                message += `📝 ${appNotesTitle} 📝\n`;
+                message += `${appNotes}\n`;
+            }
+
             message += `${separator}\n`;
             message += `⬆️ إجمالي الفوق (الداخل): * ${sumTop} *\n`;
             message += `⬇️ إجمالي التحت (الخارج): * ${sumBottom} *\n\n`;
@@ -5596,6 +5682,14 @@
             } else if (platform === 'telegram') {
                 shareUrl = `tg://msg?text=${encodedMessage}`;
                 try { navigator.clipboard.writeText(message); } catch (e) { }
+            } else if (platform === 'copy') {
+                try {
+                    navigator.clipboard.writeText(message);
+                    if (typeof showToast === 'function') showToast('✅ تم نسخ التقرير بنجاح!', 'success');
+                } catch (e) {
+                    alert('عفواً، المتصفح لا يدعم النسخ التلقائي.');
+                }
+                return;
             }
 
             if (shareUrl) {
@@ -5961,29 +6055,34 @@
             </div>
 
             <div class="settings-grid">
-                <div class="settings-card">
-                    <h4>⚡ نسخ احتياطي فوري</h4>
+                <div class="settings-card" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <h4 style="color: #60a5fa;"><span style="font-size:20px;">⚡</span> نسخ احتياطي فوري</h4>
                     <div style="display: grid; gap: 10px;">
-                        <button class="btn" onclick="createManualBackup()">📦 إنشاء نسخة يدوية</button>
-                        <button class="btn" onclick="exportBackupToFile()">💾 تصدير إلى ملف</button>
-                        <button class="btn" onclick="importBackupFromFile()">📂 استيراد من ملف</button>
+                        <button class="btn" onclick="createManualBackup()" style="background: var(--primary); color:#fff; border:none; padding:10px; font-weight:bold;">📦 إنشاء نسخة داخلية الآن</button>
+                        <button class="btn" onclick="exportBackupToFile()" style="background: #10b981; color:#fff; border:none; padding:10px; font-weight:bold;">💾 تصدير وحفظ كملف (أمان)</button>
+                        <button class="btn ghost" onclick="importBackupFromFile()" style="border: 1px dashed #94a3b8; color: #cbd5e1; padding:10px;">📂 استيراد وتسجيل من ملف</button>
                     </div>
                 </div>
 
-                <div class="settings-card">
-                    <h4>⏰ النسخ التلقائي</h4>
-                    <div style="display: grid; gap: 10px;">
-                        <label style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>تفعيل النسخ التلقائي</span>
-                            <input type="checkbox" id="autoBackupEnabled" ${localStorage.getItem('acc_auto_backup_enabled') === 'true' ? 'checked' : ''} onchange="toggleAutoBackup()">
+                <div class="settings-card" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95)); border: 1px solid rgba(245, 158, 11, 0.3);">
+                    <h4 style="color: #fbbf24;"><span style="font-size:20px;">⏰</span> إعدادات النسخ التلقائي</h4>
+                    <div style="display: grid; gap: 12px;">
+                        <label style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                            <span style="font-weight:bold; color:#e2e8f0;">تفعيل النسخ المتكرر للمتصفح</span>
+                            <input type="checkbox" id="autoBackupEnabled" ${localStorage.getItem('acc_auto_backup_enabled') === 'true' ? 'checked' : ''} onchange="toggleAutoBackup()" style="transform: scale(1.2);">
                         </label>
-                        <label>
-                            <span>الفترة الزمنية (ساعات):</span>
-                            <select id="backupInterval" onchange="setBackupInterval()" style="width: 100%; margin-top: 5px; padding: 8px;">
-                                <option value="1" ${localStorage.getItem('acc_backup_interval') === '1' ? 'selected' : ''}>كل ساعة</option>
+                        <label style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;" title="سيقوم بتنزيل التطبيق لملف لجهازك تلقائياً لتجنب مسح المتصفح للبيانات بالخطأ">
+                            <span style="font-weight:bold; color:#e2e8f0;">تحميل ملف إضافي كأمان للجهاز</span>
+                            <input type="checkbox" id="autoDownloadEnabled" ${localStorage.getItem('acc_auto_download_enabled') === 'true' ? 'checked' : ''} onchange="toggleAutoDownload()" style="transform: scale(1.2);">
+                        </label>
+                        <label style="display: flex; flex-direction: column; gap: 5px;">
+                            <span style="font-size: 13px; color: #94a3b8; font-weight:bold;">الفترة الزمنية (معدل التكرار):</span>
+                            <select id="backupInterval" onchange="setBackupInterval()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: #fff; font-weight:bold;">
+                                <option value="0.016666" ${localStorage.getItem('acc_backup_interval') === '0.016666' ? 'selected' : ''}>كل 1 دقيقة (أقصى أمان)</option>
+                                <option value="1" ${localStorage.getItem('acc_backup_interval') === '1' ? 'selected' : ''}>كل 1 ساعة (أمان عالي)</option>
                                 <option value="6" ${localStorage.getItem('acc_backup_interval') === '6' ? 'selected' : ''}>كل 6 ساعات</option>
                                 <option value="12" ${localStorage.getItem('acc_backup_interval') === '12' ? 'selected' : ''}>كل 12 ساعة</option>
-                                <option value="24" ${localStorage.getItem('acc_backup_interval') === '24' ? 'selected' : ''}>يومياً</option>
+                                <option value="24" ${localStorage.getItem('acc_backup_interval') === '24' ? 'selected' : ''}>يومياً (مستحسن)</option>
                             </select>
                         </label>
                     </div>
@@ -6696,14 +6795,6 @@
                             </div>
                         </div>
 
-                        <div id="connectedDevicesSection" style="margin-top: 15px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; display: none; align-items: center; gap: 12px; animation: slideUp 0.4s ease-out;">
-                            <div style="background: var(--success); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">📱</div>
-                            <div style="flex: 1;">
-                                <div style="color: var(--success); font-weight: bold; font-size: 14px;">مزامنة الأجهزة المشتركة</div>
-                                <div id="connectedDevicesCount" style="color: #fff; font-size: 12px; margin-top: 2px; opacity: 0.9;">جاري تحديث البيانات...</div>
-                            </div>
-                            <button onclick="fetchConnectedDevices()" class="btn ghost small" style="padding: 5px; min-width: auto; border: none; background: transparent;" title="تحديث">🔄</button>
-                        </div>
                     </div>
 
 
@@ -6734,6 +6825,20 @@
                                 <input type="checkbox" id="toggleSoundsBtn">
                                 <span class="slider"></span>
                             </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-card" style="margin-top:16px;">
+                        <h4>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--gold2);"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            تخصيص اسم مربع الملاحظات
+                        </h4>
+                        <div class="field" style="margin-top:10px;">
+                            <label style="color: var(--muted); margin-bottom: 5px; display: block;">اسم المربع الجديد:</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="notesBoxNameInput" placeholder="اكتب الاسم هنا..." class="custom-input" style="flex: 1;">
+                                <button class="btn" onclick="saveNotesBoxName()" style="padding: 10px 15px;">💾 حفظ</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -7034,9 +7139,10 @@
             setTimeout(fetchConnectedDevices, 150);
 
             // Highlight active theme
-            const currentTheme = localStorage.getItem('acc_app_theme') || 'gold';
+            const currentTheme = localStorage.getItem('acc_app_theme') || 'galaxy';
             document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-            document.querySelector(`.swatch[data-theme="${currentTheme}"]`).classList.add('active');
+            const swatch = document.querySelector(`.swatch[data-theme="${currentTheme}"]`);
+            if (swatch) swatch.classList.add('active');
 
 
             // Load saved font settings into modal
@@ -9078,15 +9184,38 @@ ${records.length < 3 ? '• زد من عدد العمليات اليومية' : 
         }
 
         function setBackupInterval() {
-            const interval = $('backupInterval').value;
+            const select = $('backupInterval');
+            const interval = select.value;
+            const text = select.options[select.selectedIndex].text.split('(')[0].trim();
+            
             localStorage.setItem('ai_auto_backup_interval', interval);
+            localStorage.setItem('acc_backup_interval', interval);
+            
             if (interval) {
-                alert(`✅ تم تفعيل النسخ الاحتياطي كل ${interval} ساعة`);
-                startAutoBackup(interval);
-            } else {
-                alert('❌ تم إلغاء النسخ الاحتياطي التلقائي');
+                if (typeof showToast === 'function') showToast(`✅ تم تحديث فترة النسخ الاحتياطي: ${text}`, 'success');
+                // Assume startAutoBackup is defined elsewhere to handle the logic
             }
         }
+
+        window.toggleAutoBackup = function () {
+            const enabled = document.getElementById('autoBackupEnabled').checked;
+            localStorage.setItem('acc_auto_backup_enabled', enabled);
+            if (enabled) {
+                if (typeof showToast === 'function') showToast('✅ تم تفعيل النسخ التلقائي للمتصفح', 'success');
+            } else {
+                if (typeof showToast === 'function') showToast('❌ تم إيقاف النسخ التلقائي للمتصفح', 'error');
+            }
+        };
+
+        window.toggleAutoDownload = function () {
+            const enabled = document.getElementById('autoDownloadEnabled').checked;
+            localStorage.setItem('acc_auto_download_enabled', enabled);
+            if (enabled) {
+                if (typeof showToast === 'function') showToast('✅ تم تفعيل التحميل التلقائي لملفات النسخ كأمان إضافي', 'success');
+            } else {
+                if (typeof showToast === 'function') showToast('❌ تم إيقاف التحميل التلقائي للملفات', 'error');
+            }
+        };
 
         function resetAISettings() {
             if (confirm('هل أنت متأكد من إعادة ضبط جميع إعدادات الذكاء الاصطناعي؟ سيتم مسح جميع الأنماط المحفوظة.')) {
@@ -12614,7 +12743,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                 });
 
                 // إضافة زر تسجيل خروج للأعلى (في شريط الأدوات بتصميم مميز)
-                const toolsContainer = document.querySelector('.header-controls .system-tools');
+                const toolsContainer = document.querySelector('.system-tools');
                 if (toolsContainer) {
                     // Remove if already exists
                     const existing = document.getElementById('header-logout-btn');
@@ -12773,17 +12902,6 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                         console.warn("Fetch devices error:", err);
                         if (countBadge) countBadge.innerText = "جاري الاتصال بالسحابة...";
                     });
-                } else {
-                    // Show it anyway in settings but with account info
-                    if (section) {
-                        section.style.display = 'flex';
-                        if (countBadge) {
-                            countBadge.innerHTML = `
-                                <span style="color:var(--muted)">وضع العمل المحلي (Offline)</span><br>
-                                <span style="font-size:10px;">اربط حساب Firebase لتفعيل المزامنة.</span>
-                            `;
-                        }
-                    }
                 }
             }
 
@@ -12803,14 +12921,21 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
             // نستمع للوثيقة الخاصة بهذا المستخدم فقط
             function startRealtimeSync() {
                 if (!globalUserId || !db) return;
-                if (unsubscribeSync) unsubscribeSync();
 
-                unsubscribeSync = db.collection("users").doc(globalUserId).collection("accounting").doc("dailyData").onSnapshot({ includeMetadataChanges: true }, (doc) => {
+                const selectedDate = document.getElementById('dateInput').value;
+                if (!selectedDate) return;
 
-                    // --- درع حماية البيانات المحلية ---
-                    // إذا كان التحديث القادم من السيرفر "غير مؤكد" (HasPendingWrites)
-                    // فهذا يعني أنه مجرد صدى لتعديلاتنا المحلية التي لم ترفع بعد.
-                    // نتجاهل هذا التحديث لنمنع إعادة رسم الواجهة ببيانات قديمة أو ناقصة.
+                const docId = `data_${selectedDate}`; // Use date-specific document ID
+
+                if (unsubscribeSync) {
+                    console.log("📡 Unsubscribing from previous sync session...");
+                    unsubscribeSync();
+                }
+
+                console.log(`📡 Starting Realtime Sync for date: ${selectedDate}`);
+
+                unsubscribeSync = db.collection("users").doc(globalUserId).collection("accounting").doc(docId).onSnapshot({ includeMetadataChanges: true }, (doc) => {
+                    // Logic to prevent overwriting local unsaved changes
                     if (doc.metadata.hasPendingWrites) {
                         console.log("⏳ Local mutation pending... skipping snapshot Update to avoid flicker.");
                         return;
@@ -12818,13 +12943,13 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
 
                     if (doc.exists) {
                         const data = doc.data();
-                        const selectedDate = document.getElementById('dateInput').value;
-                        const dateKey = 'acc_' + selectedDate;
+                        const currentDate = document.getElementById('dateInput').value;
+                        const dateKey = 'acc_' + currentDate;
 
-                        console.log("📥 Server Update Received (Confirmed)", data);
+                        console.log(`📥 Server Update Received for ${currentDate} (Confirmed)`, data);
 
                         // A. تحديث السجلات (Records) - منطق الحماية الذكية 🛡️
-                        if (data.records && data.date === selectedDate) {
+                        if (data.records && data.date === currentDate) {
                             const localRecordsStr = JSON.stringify(records); // السجلات الحالية في الذاكرة
                             const cloudRecords = data.records;
                             const cloudRecordsStr = JSON.stringify(cloudRecords);
@@ -12881,7 +13006,7 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
 
                         // B. تحديث رصيد البيض (Egg Stock)
                         // نقوم بالتحديث فقط إذا كان التاريخ في السحابة مطابق لتاريخ العرض الحالي
-                        if (data.date === selectedDate && data.eggStock) {
+                        if (data.date === currentDate && data.eggStock) {
                             const stockKey = `acc_egg_stock_${selectedDate}`;
                             const currentStockStr = localStorage.getItem(stockKey);
                             const newStockStr = JSON.stringify(data.eggStock);
@@ -12956,7 +13081,9 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
                     return;
                 }
 
-                db.collection("users").doc(globalUserId).collection("accounting").doc("dailyData").set(payload, { merge: true })
+                const docId = `data_${date}`; // Use date-specific document ID
+
+                db.collection("users").doc(globalUserId).collection("accounting").doc(docId).set(payload, { merge: true })
                     .then(() => {
                         console.log("☁️ All data sent to cloud (Merged)");
                         const statusText = document.getElementById('cloudStatusText');
@@ -13265,10 +13392,119 @@ ${report.currentData.operations.map(op => `• ${op.category}: فوق ${formatNu
         reader.readAsArrayBuffer(file);
     }
 
-    document.addEventListener('DOMContentLoaded', renderExternalBalances);
-    setTimeout(renderExternalBalances, 500); // safety fallback
+    function showAppNotesModal() {
+        const savedNotes = localStorage.getItem('acc_app_notes') || '';
+        const savedName = localStorage.getItem('acc_notes_box_name') || 'ملاحظات تطبيق سهل واطبيق محاسبة اليومية';
 
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+            <div class="modal-box" style="max-width: 500px; background: linear-gradient(145deg, #1e293b, #0f172a); border: 2px solid #64748b; box-shadow: 0 10px 40px rgba(0,0,0,0.6); color: #fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                    <h3 style="margin:0; font-size: 18px; display:flex; align-items:center; gap:8px;"><span style="font-size:24px;">📝</span> ${savedName}</h3>
+                    <button class="btn ghost" style="color:#ef4444; background: rgba(239, 68, 68, 0.1); padding:8px; border-radius:50%;" onclick="document.body.removeChild(this.closest('.modal-overlay'))"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXgiPjxsaW5lIHgxPSIxOCIgeDI9IjYiIHkxPSI2IiB5Mj0iMTgiLz48bGluZSB4MT0iNiIgeDI9IjE4IiB5MT0iNiIgeTI9IjE4Ii8+PC9zdmc+" class="icon" style="margin:0;"></button>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <textarea id="appNotesTextarea" rows="8" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #94a3b8; background: rgba(0,0,0,0.3); color: #fff; font-size: 16px; resize: vertical;" placeholder="اكتب ملاحظاتك هنا...">${savedNotes}</textarea>
+                    <button class="btn ghost" onclick="appendNewNoteTemplate()" style="width:100%; margin-top:10px; padding: 10px; font-weight:bold; font-size:14px; background: rgba(59, 130, 246, 0.1); border: 1px dashed #3b82f6; color:#93c5fd; transition: all 0.3s;">➕ إدراج ترقيم ووقت لملاحظة جديدة</button>
+                </div>
+                <button class="btn green" onclick="saveAppNotes()" style="width:100%; padding: 12px; font-weight:bold; font-size:15px;">💾 حفظ الملاحظات</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    window.appendNewNoteTemplate = function () {
+        const textarea = document.getElementById('appNotesTextarea');
+        if (!textarea) return;
+
+        const text = textarea.value;
+        const noteCount = (text.match(/📌/g) || []).length + 1;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('ar-EG');
+        let hours = now.getHours();
+        const ampm = hours >= 12 ? 'م' : 'ص';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const mins = now.getMinutes().toString().padStart(2, '0');
+        const timeStr = `${hours}:${mins} ${ampm}`;
+
+        const separator = text.trim() === '' ? '' : '\n\n━━━━━━━━━━━━━━\n\n';
+        const template = `${separator}📌 ملاحظة رقم ${noteCount}\n🕒 ${dateStr} - ${timeStr}\n📝 تفاصيل:\n`;
+
+        textarea.value += template;
+        textarea.focus();
+        textarea.scrollTop = textarea.scrollHeight;
+    };
+
+    function saveAppNotes() {
+        const notes = document.getElementById('appNotesTextarea').value;
+        localStorage.setItem('acc_app_notes', notes);
+        document.querySelector('.modal-overlay').remove();
+        if (typeof showToast === 'function') showToast('✅ تم حفظ الملاحظات بنجاح', 'success');
+        if (typeof beep === 'function') beep(1000, 0.04, 0.05);
+    }
+
+    function saveNotesBoxName() {
+        const newName = document.getElementById('notesBoxNameInput').value.trim();
+        if (newName) {
+            localStorage.setItem('acc_notes_box_name', newName);
+            renderAppNotesBox();
+            if (typeof showToast === 'function') showToast('✅ تم تحديث اسم مربع الملاحظات بنجاح', 'success');
+            if (typeof beep === 'function') beep(1000, 0.04, 0.05);
+        }
+    }
+
+    function renderAppNotesBox() {
+        const savedNotesBoxName = localStorage.getItem('acc_notes_box_name') || 'ملاحظات تطبيق سهل';
+        // Use a shorter name or keep the logic, but applied to the button now
+        const headerNotesElBtn = document.getElementById('headerNotesBoxNameBtn');
+        if (headerNotesElBtn) headerNotesElBtn.textContent = 'الملاحظات'; // Keep button short or full name
+        const notesInputEl = document.getElementById('notesBoxNameInput');
+        if (notesInputEl) notesInputEl.value = savedNotesBoxName;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderExternalBalances();
+        renderAppNotesBox();
+    });
+    setTimeout(() => {
+        renderExternalBalances();
+        renderAppNotesBox();
+    }, 500); // safety fallback
+
+    // PWA Install Prompt Logic
+    letdeferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Update UI notify the user they can add to home screen
+        const installBtn = document.getElementById('installPwaBtn');
+        if (installBtn) installBtn.style.display = 'inline-flex';
+    });
+
+    function installPWA() {
+        if (!deferredPrompt) return;
+        // Show the prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the A2HS prompt');
+            } else {
+                console.log('User dismissed the A2HS prompt');
+            }
+            deferredPrompt = null;
+            const installBtn = document.getElementById('installPwaBtn');
+            if (installBtn) installBtn.style.display = 'none';
+        });
+    }
 </script>
+
 </body>
 
 </html>
