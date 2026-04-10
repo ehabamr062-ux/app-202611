@@ -1,11 +1,11 @@
 // ============================================================
 //  Service Worker - تطبيق المحاسبة اليومي
-//  النسخة: 1.0.0
+//  النسخة: 1.1.0 (تحديث الأيقونات)
 // ============================================================
 
-const CACHE_NAME = 'mohassaba-v1';
-const STATIC_CACHE = 'mohassaba-static-v1';
-const DYNAMIC_CACHE = 'mohassaba-dynamic-v1';
+const CACHE_NAME = 'mohassaba-v2';
+const STATIC_CACHE = 'mohassaba-static-v2';
+const DYNAMIC_CACHE = 'mohassaba-dynamic-v2';
 
 // الملفات الأساسية التي يجب تخزينها مسبقاً
 const STATIC_FILES = [

@@ -48,7 +48,7 @@ const DB_API = {
         }
 
         try {
-            const response = await fetch(`${this.baseURL}/transactions`);
+            const response = await fetch(`${this.baseURL}/transactions`, { cache: 'no-store' });
             const data = await response.json();
             console.log(`📥 تم جلب ${data.length} عملية من قاعدة البيانات`);
             return data;
@@ -116,17 +116,121 @@ const DB_API = {
         }
     },
 
-    // جلب الإعدادات
     async getSettings() {
         if (!this.isConnected) return null;
 
         try {
-            const response = await fetch(`${this.baseURL}/settings`);
+            const response = await fetch(`${this.baseURL}/settings`, { cache: 'no-store' });
             return await response.json();
         } catch (error) {
             console.error('❌ خطأ في جلب الإعدادات:', error);
             return null;
         }
+    },
+
+    // --- Users ---
+    async getAllUsers() {
+        if (!this.isConnected) return null;
+        try {
+            const response = await fetch(`${this.baseURL}/users`, { cache: 'no-store' });
+            return await response.json();
+        } catch (error) {
+            console.error('❌ خطأ في جلب المستخدمين:', error);
+            return null;
+        }
+    },
+
+    async saveUser(user) {
+        if (!this.isConnected) return { success: true, local: true };
+        try {
+            const response = await fetch(`${this.baseURL}/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('❌ خطأ في حفظ المستخدم:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async deleteUser(id) {
+        if (!this.isConnected) return { success: true, local: true };
+        try {
+            const response = await fetch(`${this.baseURL}/users/${id}`, { method: 'DELETE' });
+            return await response.json();
+        } catch (error) {
+            console.error('❌ خطأ في حذف المستخدم:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // --- Inventory ---
+    async getAllInventory() {
+        if (!this.isConnected) return null;
+        try {
+            const response = await fetch(`${this.baseURL}/inventory`, { cache: 'no-store' });
+            return await response.json();
+        } catch (error) {
+            console.error('❌ خطأ في جلب المخزون:', error);
+            return null;
+        }
+    },
+
+    async saveInventoryItem(item) {
+        if (!this.isConnected) return { success: true, local: true };
+        try {
+            const response = await fetch(`${this.baseURL}/inventory`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('❌ خطأ في حفظ بند المخزون:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async deleteInventoryItem(code) {
+        if (!this.isConnected) return { success: true, local: true };
+        try {
+            const response = await fetch(`${this.baseURL}/inventory/${code}`, { method: 'DELETE' });
+            return await response.json();
+        } catch (error) {
+            console.error('❌ خطأ في حذف بند المخزون:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // مزامنة الإعدادات (جلب من السيرفر وتحديث localStorage)
+    async syncSettings() {
+        if (!this.isConnected) return;
+        
+        const settings = await this.getSettings();
+        if (settings) {
+            console.log('🔄 جاري مزامنة الإعدادات من السيرفر...');
+            const syncKeys = [
+                'acc_user_name', 'acc_user_phone', 'acc_user_notes', 'acc_app_theme', 
+                'acc_dark_mode', 'acc_font_family', 'acc_font_weight', 'acc_sounds_enabled',
+                'acc_auto_lock', 'acc_privacy_mode', 'acc_app_notes', 'acc_notes_box_name',
+                'acc_ext_tome', 'acc_ext_byme', 'acc_custom_items', 'acc_inventories_config'
+            ];
+
+            for (const key of syncKeys) {
+                if (settings[key] !== undefined) {
+                    try {
+                        const val = JSON.parse(settings[key]);
+                        localStorage.setItem(key, typeof val === 'object' ? JSON.stringify(val) : val);
+                    } catch (e) {
+                        localStorage.setItem(key, settings[key]);
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
     }
 };
 
@@ -135,14 +239,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     const connected = await DB_API.checkConnection();
     if (connected) {
         console.log('✅ متصل بقاعدة البيانات المحلية');
-        showToast('✅ متصل بقاعدة البيانات', 'success');
+        
+        // 1. مزامنة الإعدادات والملاحظات
+        await DB_API.syncSettings();
 
-        // جلب البيانات من قاعدة البيانات
+        // 2. مزامنة المستخدمين
+        const dbUsers = await DB_API.getAllUsers();
+        if (dbUsers && dbUsers.length > 0) {
+            localStorage.setItem('acc_users', JSON.stringify(dbUsers));
+            window.currentUserList = dbUsers;
+        }
+
+        // 3. تحديث واجهة المستخدم
+        if (typeof renderAppNotesBox === 'function') renderAppNotesBox();
+        if (typeof renderExternalBalances === 'function') renderExternalBalances();
+        if (typeof renderUsersList === 'function') renderUsersList();
+        if (typeof updateHeaderName === 'function') updateHeaderName();
+        if (typeof loadFontSettings === 'function') loadFontSettings();
+
+        // 4. جلب العمليات
         const dbTransactions = await DB_API.getAllTransactions();
         if (dbTransactions && dbTransactions.length > 0) {
             console.log(`📊 تم العثور على ${dbTransactions.length} عملية في قاعدة البيانات`);
-            // يمكن دمجها مع البيانات المحلية هنا
         }
+        
+        showToast('✅ تم مزامنة البيانات بنجاح', 'success');
     } else {
         console.log('⚠️ العمل في وضع localStorage فقط');
         showToast('⚠️ قاعدة البيانات غير متصلة - استخدام التخزين المحلي', 'warning');
@@ -159,17 +280,17 @@ async function saveToStorageEnhanced() {
         eggBalance: $('eggBalance') ? $('eggBalance').value : ''
     };
 
-    // 1. حفظ في localStorage (سريع ومضمون)
+    // 1. حفظ في localStorage
     localStorage.setItem('acc_' + date, JSON.stringify(dataToSave));
 
-    // 2. حفظ في قاعدة البيانات (دائم وآمن)
+    // 2. حفظ في قاعدة البيانات
     if (DB_API.isConnected) {
         for (const record of records) {
             await DB_API.saveTransaction(record);
         }
     }
 
-    beep(1000, 0.04, 0.06);
+    if (typeof beep === 'function') beep(1000, 0.04, 0.06);
 }
 
 // دالة محسّنة للتحميل تحاول قاعدة البيانات أولاً
@@ -181,7 +302,6 @@ async function loadFromStorageEnhanced() {
     if (DB_API.isConnected) {
         const dbData = await DB_API.getAllTransactions();
         if (dbData && dbData.length > 0) {
-            // تصفية البيانات حسب التاريخ
             const dateRecords = dbData.filter(r => {
                 if (!r.timestamp) return false;
                 const recordDate = r.timestamp.split('T')[0];
@@ -197,7 +317,7 @@ async function loadFromStorageEnhanced() {
         }
     }
 
-    // الرجوع إلى localStorage إذا لم تتوفر البيانات من قاعدة البيانات
+    // الرجوع إلى localStorage
     const raw = localStorage.getItem('acc_' + date);
     if (raw) {
         try {
