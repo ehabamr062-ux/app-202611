@@ -13,17 +13,28 @@ const STATIC_FILES = [
     './index.html',
     './manifest.json',
     './database-api.js',
+    './icons/icon-72x72.png',
+    './icons/icon-96x96.png',
+    './icons/icon-128x128.png',
+    './icons/icon-144x144.png',
+    './icons/icon-152x152.png',
     './icons/icon-192x192.png',
+    './icons/icon-384x384.png',
     './icons/icon-512x512.png',
-    'https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;600;700&display=swap',
+    './icons/logo.png',
 ];
 
-// CDN libraries - نحاول نخزنها لو الشبكة شغّالة
+// CDN libraries - تخزين كافة المكتبات لضمان العمل 100% بدون إنترنت
 const CDN_FILES = [
     'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js',
     'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
     'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdn.socket.io/4.7.2/socket.io.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+    'https://unpkg.com/dexie@latest/dist/dexie.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+    'https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;600;700&display=swap',
+    'https://fonts.gstatic.com/s/elmessiri/v11/K617W2tS-By_hxYVzHk7U66_S20.woff2'
 ];
 
 // ============================================================
